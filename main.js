@@ -207,6 +207,30 @@ function fishCommand(baitInput) {
   );
 }
 
+function addFish(state, emoji) {
+    state.catch.fish = (state.catch.fish || 0) + 1;
+    state.lifetime.fish = (state.lifetime.fish || 0) + 1;
+    state.catch.types[emoji] = (state.catch.types[emoji] || 0) + 1;
+  }
+  
+  // Update the player's collection with junk
+  function addJunk(state, emoji) {
+    state.catch.junk = (state.catch.junk || 0) + 1;
+    state.lifetime.junk = (state.lifetime.junk || 0) + 1;
+    state.catch.types[emoji] = (state.catch.types[emoji] || 0) + 1;
+  }
+
+function getWeightedCatch(type) {
+    const applicableItems = itemTypes.filter(i => i.type === type);
+    const totalWeight = applicableItems.reduce((sum, i) => sum + i.weight, 0);
+    let roll = randomInt(1, totalWeight);
+    for (const item of applicableItems) {
+      roll -= item.weight;
+      if (roll <= 0) return item;
+    }
+    throw new Error('Invalid weighted roll result');
+  }
+
 // ----- Stats Command -----
 // Displays the player's statistics into the game log.
 function statsCommand() {

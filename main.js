@@ -400,19 +400,26 @@ async function loadLeaderboard() {
     .select("name, score")
     .order("score", { ascending: false })
     .limit(10);
+    
   if (error) {
     logMessage("Error loading leaderboard: " + error.message);
     return;
   }
+  
+  // Manually sort the data in descending order, just in case.
+  const sortedData = data.sort((a, b) => b.score - a.score);
+  
   let html = `<h2>Global Leaderboard</h2>`;
-  data.forEach((entry, index) => {
+  sortedData.forEach((entry, index) => {
     html += `<div>${index + 1}. ${entry.name} - ${entry.score}</div>`;
   });
+  
   const lbDisplay = document.getElementById("leaderboard-display");
   if (lbDisplay) {
     lbDisplay.innerHTML = html;
   }
 }
+
 
 // ================== COLLECTION POPUP & SELL FUNCTIONS ==================
 function showCollectionPopup() {

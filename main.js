@@ -300,22 +300,50 @@ function trapCommand() {
 
 function harvestTrap() {
   const now = Date.now();
-  if (playerData.trap.active && now >= playerData.trap.end) {
-    playerData.lifetime.trap.times++;
-    playerData.trap.active = false;
-    playerData.trap.start = 0;
-    playerData.trap.end = 0;
-    saveState();
-    updateUI();
-    logMessage("You harvested your trap and collected your catch!");
-  } else if (playerData.trap.active) {
-    const remaining = playerData.trap.end - now;
-    logMessage(`Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`);
+  if (playerData.trap.active) {
+    if (now >= playerData.trap.end) {
+      // Harvest the trap: yield guaranteed catches.
+      // Guarantee between 1 and 2 fish.
+      const fishCount = randomInt(1, 2);
+      let fishCaughtNames = [];
+      for (let i = 0; i < fishCount; i++) {
+        const caughtFish = getWeightedCatch("fish");
+        fishCaughtNames.push(caughtFish.name);
+        addFish(playerData, caughtFish.name);
+      }
+      // Guarantee between 6 and 10 pieces of junk.
+      const junkCount = randomInt(6, 10);
+      let junkCaughtNames = [];
+      for (let i = 0; i < junkCount; i++) {
+        const caughtJunk = getWeightedCatch("junk");
+        junkCaughtNames.push(caughtJunk.name);
+        addJunk(playerData, caughtJunk.name);
+      }
+      // Update lifetime trap data.
+      playerData.lifetime.trap.times = (playerData.lifetime.trap.times || 0) + 1;
+      // Reset trap state.
+      playerData.trap.active = false;
+      playerData.trap.start = 0;
+      playerData.trap.end = 0;
+      // Set a 30-minute cooldown.
+      playerData.readyTimestamp = now + 1800000;
+      saveState();
+      updateUI();
+      logMessage(
+        `You harvested your trap and collected ${fishCount} fish (${fishCaughtNames.join(", ")}) ` +
+        `and ${junkCount} pieces of junk (${junkCaughtNames.join(", ")}). ` +
+        `Cooldown set to 30 minutes.`
+      );
+    } else {
+      const remaining = playerData.trap.end - now;
+      logMessage(`Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`);
+    }
   } else {
     logMessage("No trap is set.");
   }
   updateTrapUI();
 }
+
 
 function pullInTraps() {
   if (playerData.trap.active) {

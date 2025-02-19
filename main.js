@@ -406,11 +406,10 @@ async function loadLeaderboard() {
     return;
   }
   
-  // Manually sort the data in descending order, just in case.
-  const sortedData = data.sort((a, b) => b.score - a.score);
+  console.log("Leaderboard data (supabase sorting):", data);
   
   let html = `<h2>Global Leaderboard</h2>`;
-  sortedData.forEach((entry, index) => {
+  data.forEach((entry, index) => {
     html += `<div>${index + 1}. ${entry.name} - ${entry.score}</div>`;
   });
   
@@ -419,6 +418,7 @@ async function loadLeaderboard() {
     lbDisplay.innerHTML = html;
   }
 }
+
 
 
 // ================== COLLECTION POPUP & SELL FUNCTIONS ==================

@@ -398,7 +398,7 @@ async function loadLeaderboard() {
   const { data, error } = await supabaseClient
     .from("leaderboard")
     .select("name, score")
-    .order("score", { ascending: true })
+    .order("score", { ascending: false })
     .limit(10);
   if (error) {
     logMessage("Error loading leaderboard: " + error.message);

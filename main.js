@@ -641,6 +641,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ================== ITEM TYPES DEFINITION ==================
+const baitTypes = [
+  { emoji: "🪱", name: "worm", price: 2, roll: 16 },
+  { emoji: "🪰", name: "fly", price: 5, roll: 14 },
+  { emoji: "🦗", name: "cricket", price: 8, roll: 12 }
+];
+
 const itemTypes = [
   // Junk items
   { name: "🥫", sellable: true, size: false, type: "junk", price: 8, weight: 25 },

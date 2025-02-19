@@ -98,19 +98,46 @@ function formatTimeDelta(ms) {
 
 // Append a message to the "log" container; keeping only 3 messages visible.
 function logMessage(message) {
-  const logDiv = document.getElementById('log');
-  const time = new Date().toLocaleTimeString();
-  const msgEl = document.createElement('div');
-  msgEl.className = 'message';
-  msgEl.innerHTML = `<div class="timestamp">[${time}]</div>
-                     <div class="text">${message}</div>`;
-  logDiv.appendChild(msgEl);
-  // Keep only the last 3 message bubbles.
-  while (logDiv.getElementsByClassName('message').length > 3) {
-    logDiv.removeChild(logDiv.firstChild);
+    const logDiv = document.getElementById("log");
+    const time = new Date().toLocaleTimeString();
+    const msgEl = document.createElement("div");
+    msgEl.className = "message";
+    msgEl.innerHTML = `<div class="timestamp">[${time}]</div>
+                       <div class="text">${message}</div>`;
+    logDiv.appendChild(msgEl);
+    
+    // Ensure only the last 3 messages are kept in the DOM.
+    while (logDiv.getElementsByClassName("message").length > 3) {
+      logDiv.removeChild(logDiv.firstChild);
+    }
+    logDiv.scrollTop = logDiv.scrollHeight;
+    
+    // Cache the current messages (store their outerHTML) in localStorage.
+    const messages = Array.from(logDiv.getElementsByClassName("message")).map(el => el.outerHTML);
+    localStorage.setItem("gameLog", JSON.stringify(messages));
   }
-  logDiv.scrollTop = logDiv.scrollHeight;
-}
+
+function loadLog() {
+    const logDiv = document.getElementById("log");
+    const cachedMessages = localStorage.getItem("gameLog");
+    if (cachedMessages) {
+      try {
+        const messages = JSON.parse(cachedMessages);
+        // Clear any existing content
+        logDiv.innerHTML = "";
+        messages.forEach((msgHTML) => {
+          const temp = document.createElement("div");
+          temp.innerHTML = msgHTML;
+          // Append the first element from the temporary container.
+          if (temp.firstElementChild) {
+            logDiv.appendChild(temp.firstElementChild);
+          }
+        });
+      } catch (e) {
+        console.error("Error parsing cached game log:", e);
+      }
+    }
+  }
 
 // ================== GAME FUNCTIONS ==================
 
@@ -229,6 +256,97 @@ function getWeightedCatch(type) {
       if (roll <= 0) return item;
     }
     throw new Error('Invalid weighted roll result');
+  }
+
+  function trapCommand() {
+    const now = Date.now();
+  
+    if (!playerData.trap.active) {
+      // Set the trap
+      playerData.trap.active = true;
+      playerData.trap.start = now;
+      // Set duration to 1 hour for example
+      playerData.trap.duration = 3600000; 
+      playerData.trap.end = now + playerData.trap.duration;
+      saveState();
+      updateUI();
+      logMessage(`You have set your trap. It will be ready in ${formatTimeDelta(playerData.trap.duration)}.`);
+    } else {
+      // If trap is active, do not change here because harvest is handled by a separate button.
+      logMessage("Your trap is active. Use the Harvest or Pull in Traps options.");
+    }
+    updateTrapUI();
+  }
+  
+  function updateTrapUI() {
+    const trapBtn = document.getElementById("trap-btn");
+    const pullBtn = document.getElementById("pull-traps-btn");
+    console.log("Updating trap UI. Current trap state:", playerData.trap);
+    if (playerData.trap.active) {
+      trapBtn.textContent = "Harvest Trap";
+      if (pullBtn) {
+        pullBtn.style.display = "inline-block";
+      }
+    } else {
+      trapBtn.textContent = "Set Trap";
+      if (pullBtn) {
+        pullBtn.style.display = "none";
+      }
+    }
+  }
+  function harvestTrap() {
+    const now = Date.now();
+    if (playerData.trap.active && now >= playerData.trap.end) {
+      // Harvest logic: update trap count, reset trap state
+      playerData.lifetime.trap.times++;
+      playerData.trap.active = false;
+      playerData.trap.start = 0;
+      playerData.trap.end = 0;
+      saveState();
+      updateUI();
+      logMessage("You harvested your trap and collected your catch!");
+    } else if (playerData.trap.active) {
+      const remaining = playerData.trap.end - now;
+      logMessage(`Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`);
+    } else {
+      logMessage("No trap is set.");
+    }
+    updateTrapUI();
+  }
+  
+  function pullInTraps() {
+    // Pull in traps manually, cancelling them.
+    if (playerData.trap.active) {
+      playerData.trap.active = false;
+      playerData.trap.start = 0;
+      playerData.trap.end = 0;
+      playerData.lifetime.trap.cancelled++;
+      saveState();
+      updateUI();
+      logMessage("You pulled in your traps early and received no catch.");
+    } else {
+      logMessage("No trap is set.");
+    }
+    updateTrapUI();
+  }
+
+  function checkTrapExpiration() {
+    // If a trap is active, check if it should still be active.
+    if (playerData.trap.active) {
+      const now = Date.now();
+      // Log the trap state and current time for debugging.
+      console.log("Before expiration check, trap state:", playerData.trap, "Now:", now);
+      if (now >= playerData.trap.end) {
+        // If the trap's end time has passed, clear the trap data.
+        playerData.trap.active = false;
+        playerData.trap.start = 0;
+        playerData.trap.end = 0;
+        saveState();
+        console.log("Trap expired. New trap state:", playerData.trap);
+      } else {
+        console.log("Trap is still active. Time remaining (ms):", playerData.trap.end - now);
+      }
+    }
   }
 
 // ----- Stats Command -----
@@ -464,7 +582,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load or initialize game state.
   loadState();
+  checkTrapExpiration();
   updateUI();
+  updateTrapUI();
+  loadLog();
 
   // Hook up Stats button.
   const statsBtn = document.getElementById('stats-btn');
@@ -540,6 +661,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('collection-popup').classList.add('hidden');
     });
   }
+
+  const trapBtn = document.getElementById("trap-btn");
+  if (trapBtn) {
+    trapBtn.addEventListener("click", () => {
+      if (playerData.trap.active) {
+        harvestTrap();
+      } else {
+        trapCommand();
+      }
+    });
+  }
+  
+  const pullBtn = document.getElementById("pull-traps-btn");
+  if (pullBtn) {
+    pullBtn.addEventListener("click", pullInTraps);
+  }
+
 });
 
 // ================== ITEM TYPES DEFINITION ==================

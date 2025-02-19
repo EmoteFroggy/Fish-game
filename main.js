@@ -398,28 +398,21 @@ async function loadLeaderboard() {
   const { data, error } = await supabaseClient
     .from("leaderboard")
     .select("name, score")
-    .order("score", { ascending: false })
+    .order("score", { ascending: true })
     .limit(10);
-    
   if (error) {
     logMessage("Error loading leaderboard: " + error.message);
     return;
   }
-  
-  console.log("Leaderboard data (supabase sorting):", data);
-  
   let html = `<h2>Global Leaderboard</h2>`;
   data.forEach((entry, index) => {
     html += `<div>${index + 1}. ${entry.name} - ${entry.score}</div>`;
   });
-  
   const lbDisplay = document.getElementById("leaderboard-display");
   if (lbDisplay) {
     lbDisplay.innerHTML = html;
   }
 }
-
-
 
 // ================== COLLECTION POPUP & SELL FUNCTIONS ==================
 function showCollectionPopup() {

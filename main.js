@@ -241,9 +241,8 @@ function statsCommand() {
 // Calculate a score based on player's lifetime fish and max fish size.
 function calculateScore() {
   const fishCount = playerData.lifetime.fish || 0;
-  const maxSize = playerData.lifetime.maxFishSize || 0;
   // Example formula: each fish is 10 points; each cm of size is 2 points.
-  return fishCount * 10 + maxSize * 2;
+  return fishCount;
 }
 
 // Prompt the user for a name if not already stored.

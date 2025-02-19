@@ -222,3 +222,28 @@
     justify-content: center;
   }
   
+  .collection-section {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: #222;
+  }
+  
+  .collection-section h3 {
+    margin: 0 0 0.5rem;
+    color: #fff;
+  }
+  
+  .collection-item {
+    display: inline-block;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    text-align: center;
+    background: #333;
+    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    color: #fff;
+    cursor: pointer;
+  }

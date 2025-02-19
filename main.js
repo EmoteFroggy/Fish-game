@@ -298,7 +298,7 @@ function trapCommand() {
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 1000; 
+    playerData.trap.duration = 3600000; 
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();
@@ -463,15 +463,28 @@ async function loadLeaderboard() {
 
 // ================== COLLECTION POPUP & SELL FUNCTIONS ==================
 function showCollectionPopup() {
-  const popup = document.getElementById('collection-popup');
-  const grid = document.getElementById('collection-grid');
-  grid.innerHTML = '';
+  const popup = document.getElementById("collection-popup");
+  const grid = document.getElementById("collection-grid");
+  grid.innerHTML = "";
 
+  // Create separate containers for fish and junk.
+  const fishSection = document.createElement("div");
+  fishSection.className = "collection-section fish-section";
+  fishSection.innerHTML = "<h3>Fish Collection</h3>";
+  
+  const junkSection = document.createElement("div");
+  junkSection.className = "collection-section junk-section";
+  junkSection.innerHTML = "<h3>Junk Collection</h3>";
+
+  // Loop through the collection items.
   for (const [emoji, count] of Object.entries(playerData.catch.types)) {
     if (count > 0) {
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'collection-item';
-      itemDiv.setAttribute('data-emoji', emoji);
+      const itemData = itemTypes.find(item => item.name === emoji);
+      if (!itemData) continue;
+      
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "collection-item";
+      itemDiv.setAttribute("data-emoji", emoji);
       itemDiv.innerHTML = `
         <span class="emoji">${emoji}</span>
         <span class="count">(${count})</span>
@@ -479,34 +492,46 @@ function showCollectionPopup() {
           <input type="number" min="1" value="1" class="sell-amount-input" />
         </div>
       `;
-      itemDiv.addEventListener('click', function (e) {
-        if (e.target.tagName.toLowerCase() === 'input') return;
-        this.classList.toggle('selected');
+      
+      // Add click behavior.
+      itemDiv.addEventListener("click", function(e) {
+        if (e.target.tagName.toLowerCase() === "input") return;
+        this.classList.toggle("selected");
+        // Toggle number input visibility if more than one item exists.
         if (count > 1) {
-          const inputContainer = this.querySelector('.sell-input-container');
-          inputContainer.classList.toggle('hidden');
+          const inputContainer = this.querySelector(".sell-input-container");
+          inputContainer.classList.toggle("hidden");
         }
       });
-      const inputField = itemDiv.querySelector('.sell-amount-input');
+      const inputField = itemDiv.querySelector(".sell-amount-input");
       if (inputField) {
-        inputField.addEventListener('click', e => e.stopPropagation());
+        inputField.addEventListener("click", e => e.stopPropagation());
       }
-      grid.appendChild(itemDiv);
+      
+      // Append itemDiv to the appropriate section.
+      if (itemData.type === "fish") {
+        fishSection.appendChild(itemDiv);
+      } else if (itemData.type === "junk") {
+        junkSection.appendChild(itemDiv);
+      }
     }
   }
+  
+  grid.appendChild(fishSection);
+  grid.appendChild(junkSection);
 
-  let sellButton = document.getElementById('sell-selected-btn');
+  // Append the Sell Selected button if it does not exist yet.
+  let sellButton = document.getElementById("sell-selected-btn");
   if (!sellButton) {
-    sellButton = document.createElement('button');
-    sellButton.id = 'sell-selected-btn';
-    sellButton.textContent = 'Sell Selected';
-    sellButton.addEventListener('click', sellSelectedItems);
-    document
-      .querySelector('#collection-popup .popup-content')
-      .appendChild(sellButton);
+    sellButton = document.createElement("button");
+    sellButton.id = "sell-selected-btn";
+    sellButton.textContent = "Sell Selected";
+    sellButton.addEventListener("click", sellSelectedItems);
+    document.querySelector("#collection-popup .popup-content").appendChild(sellButton);
   }
-  popup.classList.remove('hidden');
+  popup.classList.remove("hidden");
 }
+
 
 function sellSelectedItems() {
   const grid = document.getElementById('collection-grid');

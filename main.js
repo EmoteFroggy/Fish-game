@@ -379,35 +379,20 @@ async function submitAutoScore(silent = false) {
   const score = calculateScore();
   if (!silent) logMessage("Submitting score for " + name + ": " + score);
 
+  // Use upsert to update the record if it already exists.
   const { data, error } = await supabaseClient
     .from("leaderboard")
-    .select("score")
-    .eq("name", name)
-    .single();
-    
-  if (data) {
-    const { error: updateError } = await supabaseClient
-      .from("leaderboard")
-      .update({ score, submission_origin: "submit-my-score" })
-      .eq("name", name);
-    if (updateError) {
-      if (!silent) logMessage("Error updating score: " + updateError.message);
-    } else {
-      if (!silent) logMessage("Score updated successfully!");
-    }
+    .upsert(
+      { name, score, submission_origin: "submit-my-score" },
+      { onConflict: 'name' }
+    );
+
+  if (error) {
+    if (!silent) logMessage("Error updating score: " + error.message);
   } else {
-    const { error: insertError } = await supabaseClient
-      .from("leaderboard")
-      .insert([{ name, score, submission_origin: "submit-my-score" }]);
-    if (insertError) {
-      if (!silent) logMessage("Error submitting score: " + insertError.message);
-    } else {
-      if (!silent) logMessage("Score submitted successfully!");
-    }
+    if (!silent) logMessage("Score updated successfully!");
   }
 }
-
-
 
 async function loadLeaderboard() {
   const { data, error } = await supabaseClient

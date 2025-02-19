@@ -361,11 +361,10 @@ function statsCommand() {
 }
 
 function calculateScore() {
-  const fishCount = playerData.lifetime.fish || 0;
-  return fishCount;
+  return playerData.catch.fish || 0;
 }
 
-async function submitAutoScore() {
+async function submitAutoScore(silent = false) {
   let name = playerData.name;
   if (!name) {
     name = prompt("Enter your name for leaderboard:");
@@ -373,43 +372,42 @@ async function submitAutoScore() {
       playerData.name = name.trim();
       saveState();
     } else {
-      logMessage("Name is required.");
+      if (!silent) logMessage("Name is required.");
       return;
     }
   }
   const score = calculateScore();
-  logMessage("Submitting score for " + name + ": " + score);
-  // Check if there's an existing score.
+  if (!silent) logMessage("Submitting score for " + name + ": " + score);
+
   const { data, error } = await supabaseClient
     .from("leaderboard")
     .select("score")
     .eq("name", name)
     .single();
+    
   if (data) {
-    if (score > data.score) {
-      const { error: updateError } = await supabaseClient
-        .from("leaderboard")
-        .update({ score, submission_origin: "submit-my-score" })
-        .eq("name", name);
-      if (updateError) {
-        logMessage("Error updating score: " + updateError.message);
-      } else {
-        logMessage("Score updated successfully!");
-      }
+    const { error: updateError } = await supabaseClient
+      .from("leaderboard")
+      .update({ score, submission_origin: "submit-my-score" })
+      .eq("name", name);
+    if (updateError) {
+      if (!silent) logMessage("Error updating score: " + updateError.message);
     } else {
-      logMessage("Submitted score is lower than or equal to current score.");
+      if (!silent) logMessage("Score updated successfully!");
     }
   } else {
     const { error: insertError } = await supabaseClient
       .from("leaderboard")
       .insert([{ name, score, submission_origin: "submit-my-score" }]);
     if (insertError) {
-      logMessage("Error submitting score: " + insertError.message);
+      if (!silent) logMessage("Error submitting score: " + insertError.message);
     } else {
-      logMessage("Score submitted successfully!");
+      if (!silent) logMessage("Score submitted successfully!");
     }
   }
 }
+
+
 
 async function loadLeaderboard() {
   const { data, error } = await supabaseClient
@@ -637,6 +635,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (pullBtn) {
     pullBtn.addEventListener("click", pullInTraps);
   }
+  
+  setInterval(() => {
+    loadLeaderboard();
+    submitAutoScore(true);
+  }, 5000);
 
 });
 

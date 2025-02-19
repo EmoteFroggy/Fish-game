@@ -545,6 +545,13 @@ document.addEventListener('DOMContentLoaded', () => {
 // ================== ITEM TYPES DEFINITION ==================
 
 // Define your item types for fish and junk. Adjust as needed.
+
+const baitTypes = [
+    { emoji: "🪱", name: "worm", price: 2, roll: 16 },
+    { emoji: "🪰", name: "fly", price: 5, roll: 14 },
+    { emoji: "🦗", name: "cricket", price: 8, roll: 12 }
+  ];
+
 const itemTypes = [
   // Junk items
   {

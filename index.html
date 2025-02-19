@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <img src="https://cdn.7tv.app/emote/01FN57TJS8000EXJQ7MWJVS124/3x.png" alt="Fishing game logo">
+    </header>
+
+    <main>
+      <section id="stats-panel">
+        <h2>Your Stats</h2>
+        <div id="stats">
+          <!-- Player stats injected here -->
+        </div>
+      </section>
+
+      <section id="actions">
+        <h2>Actions</h2>
+        <div class="action-group">
+          <button id="fish-no-bait-btn">Fish (No Bait)</button>
+          <button id="fish-worm-btn">Worm 🪱(2 coins)</button>
+          <button id="fish-fly-btn">Fly 🪰(5 coins)</button>
+          <button id="fish-cricket-btn">Cricket 🦗(8 coins)</button>
+        </div>
+        <div class="action-group">
+          <button id="trap-btn">Trap</button>
+          <button id="trap-harvest-btn">Harvest/Cancel Traps</button>
+        </div>
+        <div class="action-group">
+          <button id="show-btn">Show Collection</button>
+        </div>
+        <div class="action-group">
+          <button id="stats-btn">Stats</button>
+        </div>
+      </section>
+      <div id="leaderboard-display" style="padding: 10px; background: #222; color: #fff; margin: 10px 0; border-radius: 8px;"></div>
+      <div class="action-group">
+        <button id="submit-score-btn">Submit Test Score</button>
+        <button id="load-leaderboard-btn">Load Leaderboard</button>
+      </div>
+      <section id="log-section">
+        <h2>Game Log</h2>
+        <div id="log"></div>
+      </section>
+    </main>
+    <div id="collection-popup" class="popup hidden">
+      <div class="popup-content">
+        <span id="close-popup" class="close">&times;</span>
+        <h2>Your Collection</h2>
+        <div id="collection-grid"></div>
+        <!-- The sell-selected button will be added inside the popup dynamically -->
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

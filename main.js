@@ -1,12 +1,7 @@
-// ================== GLOBAL VARIABLES & HELPER FUNCTIONS ==================
-
-// Replace with your Render API URL for the leaderboard backend
 const API_URL = 'https://leaderboard-backend-9a9q.onrender.com';
 
-// Global object for player state; will be loaded from localStorage or initialized.
 let playerData = null;
 
-// Default initial state for the player data.
 function getInitialStats() {
   return {
     name: null,
@@ -15,7 +10,7 @@ function getInitialStats() {
       dryStreak: 0,
       fish: 0,
       junk: 0,
-      types: {}, // Example: { "🐟": 5, "🥫": 3 }
+      types: {},
     },
     trap: {
       active: false,
@@ -40,7 +35,6 @@ function getInitialStats() {
   };
 }
 
-// Load state from localStorage or initialize a new one.
 function loadState() {
   const stored = localStorage.getItem('fishData');
   if (stored) {
@@ -57,12 +51,10 @@ function loadState() {
   }
 }
 
-// Save the current state to localStorage.
 function saveState() {
   localStorage.setItem('fishData', JSON.stringify(playerData));
 }
 
-// Update the UI (for example, the stats panel).
 function updateUI() {
   const statsDiv = document.getElementById('stats');
   statsDiv.innerHTML = `
@@ -83,7 +75,6 @@ function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-// Format a given time difference in milliseconds as "X min Y sec".
 function formatTimeDelta(ms) {
   const totalSeconds = Math.ceil(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
@@ -94,9 +85,6 @@ function formatTimeDelta(ms) {
   return `${seconds} sec`;
 }
 
-// ================== LOGGING FUNCTION ==================
-
-// Append a message to the "log" container; keeping only 3 messages visible.
 function logMessage(message) {
     const logDiv = document.getElementById("log");
     const time = new Date().toLocaleTimeString();
@@ -105,14 +93,11 @@ function logMessage(message) {
     msgEl.innerHTML = `<div class="timestamp">[${time}]</div>
                        <div class="text">${message}</div>`;
     logDiv.appendChild(msgEl);
-    
-    // Ensure only the last 3 messages are kept in the DOM.
     while (logDiv.getElementsByClassName("message").length > 3) {
       logDiv.removeChild(logDiv.firstChild);
     }
     logDiv.scrollTop = logDiv.scrollHeight;
     
-    // Cache the current messages (store their outerHTML) in localStorage.
     const messages = Array.from(logDiv.getElementsByClassName("message")).map(el => el.outerHTML);
     localStorage.setItem("gameLog", JSON.stringify(messages));
   }
@@ -123,12 +108,10 @@ function loadLog() {
     if (cachedMessages) {
       try {
         const messages = JSON.parse(cachedMessages);
-        // Clear any existing content
         logDiv.innerHTML = "";
         messages.forEach((msgHTML) => {
           const temp = document.createElement("div");
           temp.innerHTML = msgHTML;
-          // Append the first element from the temporary container.
           if (temp.firstElementChild) {
             logDiv.appendChild(temp.firstElementChild);
           }
@@ -139,12 +122,7 @@ function loadLog() {
     }
   }
 
-// ================== GAME FUNCTIONS ==================
-
-// ----- Fish Command -----
-// Attempts to fish. Prevents fishing if a trap is active or if in cooldown.
 function fishCommand(baitInput) {
-  // Prevent fishing if a trap is set
   if (playerData.trap.active) {
     logMessage(
       'You cannot fish while your trap is set. Please harvest or cancel your trap first.'
@@ -185,7 +163,6 @@ function fishCommand(baitInput) {
 
   const roll = randomInt(1, rollMaximum);
   if (roll !== 1) {
-    // Unsuccessful catch: 1-3 minute cooldown (60,000 to 180,000 ms)
     playerData.catch.dryStreak++;
     playerData.catch.luckyStreak = 0;
     const fishingDelay = randomInt(60000, 180000);
@@ -208,14 +185,13 @@ function fishCommand(baitInput) {
     return;
   }
 
-  // Successful catch: 30 minute cooldown (1,800,000 ms)
   const caughtFishData = getWeightedCatch('fish');
   const fishType = caughtFishData.name;
   addFish(playerData, fishType);
   playerData.lifetime.fish++;
   playerData.catch.dryStreak = 0;
   playerData.catch.luckyStreak++;
-  playerData.readyTimestamp = Date.now() + 1800000; // 30 minutes
+  playerData.readyTimestamp = Date.now() + 1800000;
 
   let sizeString = '';
   if (caughtFishData.size) {
@@ -240,7 +216,6 @@ function addFish(state, emoji) {
     state.catch.types[emoji] = (state.catch.types[emoji] || 0) + 1;
   }
   
-  // Update the player's collection with junk
   function addJunk(state, emoji) {
     state.catch.junk = (state.catch.junk || 0) + 1;
     state.lifetime.junk = (state.lifetime.junk || 0) + 1;
@@ -260,19 +235,15 @@ function getWeightedCatch(type) {
 
   function trapCommand() {
     const now = Date.now();
-  
     if (!playerData.trap.active) {
-      // Set the trap
       playerData.trap.active = true;
       playerData.trap.start = now;
-      // Set duration to 1 hour for example
       playerData.trap.duration = 3600000; 
       playerData.trap.end = now + playerData.trap.duration;
       saveState();
       updateUI();
       logMessage(`You have set your trap. It will be ready in ${formatTimeDelta(playerData.trap.duration)}.`);
     } else {
-      // If trap is active, do not change here because harvest is handled by a separate button.
       logMessage("Your trap is active. Use the Harvest or Pull in Traps options.");
     }
     updateTrapUI();
@@ -297,7 +268,6 @@ function getWeightedCatch(type) {
   function harvestTrap() {
     const now = Date.now();
     if (playerData.trap.active && now >= playerData.trap.end) {
-      // Harvest logic: update trap count, reset trap state
       playerData.lifetime.trap.times++;
       playerData.trap.active = false;
       playerData.trap.start = 0;
@@ -315,7 +285,6 @@ function getWeightedCatch(type) {
   }
   
   function pullInTraps() {
-    // Pull in traps manually, cancelling them.
     if (playerData.trap.active) {
       playerData.trap.active = false;
       playerData.trap.start = 0;
@@ -331,13 +300,10 @@ function getWeightedCatch(type) {
   }
 
   function checkTrapExpiration() {
-    // If a trap is active, check if it should still be active.
     if (playerData.trap.active) {
       const now = Date.now();
-      // Log the trap state and current time for debugging.
       console.log("Before expiration check, trap state:", playerData.trap, "Now:", now);
       if (now >= playerData.trap.end) {
-        // If the trap's end time has passed, clear the trap data.
         playerData.trap.active = false;
         playerData.trap.start = 0;
         playerData.trap.end = 0;
@@ -349,8 +315,6 @@ function getWeightedCatch(type) {
     }
   }
 
-// ----- Stats Command -----
-// Displays the player's statistics into the game log.
 function statsCommand() {
   if (!playerData || !playerData.lifetime) {
     logMessage('No stats available.');
@@ -378,16 +342,11 @@ function statsCommand() {
   logMessage(statsMessage);
 }
 
-// ================== LEADERBOARD FUNCTIONS (Render API) ==================
-
-// Calculate a score based on player's lifetime fish and max fish size.
 function calculateScore() {
   const fishCount = playerData.lifetime.fish || 0;
-  // Example formula: each fish is 10 points; each cm of size is 2 points.
   return fishCount;
 }
 
-// Prompt the user for a name if not already stored.
 function promptForName(callback) {
   if (!playerData.name) {
     const name = prompt('Please enter your name for the leaderboard:');
@@ -403,7 +362,6 @@ function promptForName(callback) {
   }
 }
 
-// Submit the player's score (computed automatically) to the leaderboard API.
 function submitAutoScore() {
   promptForName(name => {
     const score = calculateScore();
@@ -429,7 +387,6 @@ function submitAutoScore() {
   });
 }
 
-// Load the global leaderboard from the API and display it.
 function loadLeaderboard() {
   fetch(API_URL + '/leaderboard')
     .then(res => res.json())
@@ -452,21 +409,16 @@ function loadLeaderboard() {
     });
 }
 
-// ================== COLLECTION POPUP & SELL FUNCTIONS ==================
-
-// Displays the collection popup where items can be viewed and sold.
 function showCollectionPopup() {
   const popup = document.getElementById('collection-popup');
   const grid = document.getElementById('collection-grid');
-  grid.innerHTML = ''; // Clear previous items
+  grid.innerHTML = '';
 
-  // Iterate over the player's collection (playerData.catch.types)
   for (const [emoji, count] of Object.entries(playerData.catch.types)) {
     if (count > 0) {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'collection-item';
       itemDiv.setAttribute('data-emoji', emoji);
-      // Set up inner content: emoji, count, and an input for sell amount.
       itemDiv.innerHTML = `
         <span class="emoji">${emoji}</span>
         <span class="count">(${count})</span>
@@ -474,7 +426,6 @@ function showCollectionPopup() {
           <input type="number" min="1" value="1" class="sell-amount-input" />
         </div>
       `;
-      // Toggle selection when item is clicked, except if the input is clicked.
       itemDiv.addEventListener('click', function (e) {
         if (e.target.tagName.toLowerCase() === 'input') return;
         this.classList.toggle('selected');
@@ -483,7 +434,6 @@ function showCollectionPopup() {
           inputContainer.classList.toggle('hidden');
         }
       });
-      // Prevent click events on input from bubbling up.
       const inputField = itemDiv.querySelector('.sell-amount-input');
       if (inputField) {
         inputField.addEventListener('click', e => e.stopPropagation());
@@ -492,7 +442,6 @@ function showCollectionPopup() {
     }
   }
 
-  // Add or update the "Sell Selected" button.
   let sellButton = document.getElementById('sell-selected-btn');
   if (!sellButton) {
     sellButton = document.createElement('button');
@@ -506,7 +455,6 @@ function showCollectionPopup() {
   popup.classList.remove('hidden');
 }
 
-// Processes the sale of selected items from the collection popup.
 function sellSelectedItems() {
   const grid = document.getElementById('collection-grid');
   const selectedItems = grid.querySelectorAll('.collection-item.selected');
@@ -526,7 +474,6 @@ function sellSelectedItems() {
     const itemData = itemTypes.find(it => it.name === emoji);
     if (!itemData || !itemData.sellable) return;
 
-    // Determine the sell amount.
     let sellAmount = 1;
     if (currentCount > 1) {
       const inputField = itemDiv.querySelector('.sell-amount-input');
@@ -538,7 +485,6 @@ function sellSelectedItems() {
     const coinsGained = sellAmount * itemData.price;
     totalGained += coinsGained;
 
-    // Update playerData: decrease count and update overall totals.
     playerData.catch.types[emoji] -= sellAmount;
     if (itemData.type === 'fish') {
       playerData.catch.fish = (playerData.catch.fish || 0) - sellAmount;
@@ -560,15 +506,11 @@ function sellSelectedItems() {
     totalGained +
     ' coins';
   logMessage(summaryText);
-  showCollectionPopup(); // Refresh the popup to re-read collection counts.
+  showCollectionPopup();
 }
-
-// ================== EVENT LISTENERS & INITIALIZATION ==================
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded and parsed.');
-
-  // Ensure required elements are present.
   if (!document.getElementById('stats-btn')) {
     console.error(
       "Stats button not found! Ensure your HTML includes an element with id='stats-btn'."
@@ -580,21 +522,18 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  // Load or initialize game state.
   loadState();
   checkTrapExpiration();
   updateUI();
   updateTrapUI();
   loadLog();
 
-  // Hook up Stats button.
   const statsBtn = document.getElementById('stats-btn');
   if (statsBtn) {
     statsBtn.addEventListener('click', statsCommand);
     console.log('Stats button listener attached.');
   }
 
-  // Hook up Fish buttons.
   const fishNoBaitBtn = document.getElementById('fish-no-bait-btn');
   if (fishNoBaitBtn) {
     fishNoBaitBtn.addEventListener('click', () => {
@@ -636,25 +575,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Hook up Submit Score button.
   const submitScoreBtn = document.getElementById('submit-score-btn');
   if (submitScoreBtn) {
     submitScoreBtn.addEventListener('click', submitAutoScore);
   }
 
-  // Hook up Leaderboard Load button.
   const loadLeaderboardBtn = document.getElementById('load-leaderboard-btn');
   if (loadLeaderboardBtn) {
     loadLeaderboardBtn.addEventListener('click', loadLeaderboard);
   }
 
-  // Hook up Collection Popup Show button.
   const showCollectionBtn = document.getElementById('show-btn');
   if (showCollectionBtn) {
     showCollectionBtn.addEventListener('click', showCollectionPopup);
   }
 
-  // Hook up popup close button.
   const closePopupBtn = document.getElementById('close-popup');
   if (closePopupBtn) {
     closePopupBtn.addEventListener('click', () => {
@@ -679,10 +614,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 });
-
-// ================== ITEM TYPES DEFINITION ==================
-
-// Define your item types for fish and junk. Adjust as needed.
 
 const baitTypes = [
     { emoji: "🪱", name: "worm", price: 2, roll: 16 },

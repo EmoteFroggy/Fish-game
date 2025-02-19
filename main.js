@@ -17,13 +17,13 @@ function getInitialStats() {
       dryStreak: 0,
       fish: 0,
       junk: 0,
-      types: {}  // example: { "🐟": 5, "🥫": 3 }
+      types: {}
     },
     trap: {
       active: false,
       start: 0,
       end: 0,
-      duration: 3600000  // Default: 1 hour duration
+      duration: 3600000  // 1 hour duration
     },
     readyTimestamp: 0,
     coins: 10,
@@ -36,18 +36,28 @@ function getInitialStats() {
       dryStreak: 0,
       luckyStreak: 0,
       maxFishSize: 0,
-      maxFishType: ""
+      maxFishType: "",
+      // Add default trap stats inside lifetime:
+      trap: {
+         times: 0,
+         cancelled: 0
+      }
     }
   };
 }
 
+
 function loadState() {
-  const stored = localStorage.getItem('fishData');
+  const stored = localStorage.getItem("fishData");
   if (stored) {
     try {
       playerData = JSON.parse(stored);
+      // Ensure that lifetime.trap exists:
+      if (!playerData.lifetime.trap) {
+        playerData.lifetime.trap = { times: 0, cancelled: 0 };
+      }
     } catch (e) {
-      console.error('Error parsing saved state. Initializing new state.');
+      console.error("Error parsing saved state. Initializing new state.");
       playerData = getInitialStats();
       saveState();
     }
@@ -56,6 +66,7 @@ function loadState() {
     saveState();
   }
 }
+
 
 function saveState() {
   localStorage.setItem("fishData", JSON.stringify(playerData));
@@ -225,6 +236,17 @@ function fishCommand(baitInput) {
   );
 }
 
+function getWeightedCatch(type) {
+  const applicableItems = itemTypes.filter(item => item.type === type);
+  const totalWeight = applicableItems.reduce((sum, item) => sum + item.weight, 0);
+  let roll = randomInt(1, totalWeight);
+  for (const item of applicableItems) {
+    roll -= item.weight;
+    if (roll <= 0) return item;
+  }
+  throw new Error("Weighted catch error");
+}
+
 function addFish(state, emoji) {
   state.catch.fish = (state.catch.fish || 0) + 1;
   state.lifetime.fish = (state.lifetime.fish || 0) + 1;
@@ -235,17 +257,6 @@ function addJunk(state, emoji) {
   state.catch.junk = (state.catch.junk || 0) + 1;
   state.lifetime.junk = (state.lifetime.junk || 0) + 1;
   state.catch.types[emoji] = (state.catch.types[emoji] || 0) + 1;
-}
-
-function getWeightedCatch(type) {
-  const applicableItems = itemTypes.filter(i => i.type === type);
-  const totalWeight = applicableItems.reduce((sum, i) => sum + i.weight, 0);
-  let roll = randomInt(1, totalWeight);
-  for (const item of applicableItems) {
-    roll -= item.weight;
-    if (roll <= 0) return item;
-  }
-  throw new Error('Invalid weighted roll result');
 }
 
 // ================== TRAP FUNCTIONS ==================
@@ -287,7 +298,7 @@ function trapCommand() {
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 3600000; 
+    playerData.trap.duration = 1000; 
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();
@@ -302,47 +313,55 @@ function harvestTrap() {
   const now = Date.now();
   if (playerData.trap.active) {
     if (now >= playerData.trap.end) {
-      // Harvest the trap: yield guaranteed catches.
+      console.log("Trap expired. Harvesting now...");
       // Guarantee between 1 and 2 fish.
       const fishCount = randomInt(1, 2);
-      let fishCaughtNames = [];
-      for (let i = 0; i < fishCount; i++) {
-        const caughtFish = getWeightedCatch("fish");
-        fishCaughtNames.push(caughtFish.name);
-        addFish(playerData, caughtFish.name);
-      }
-      // Guarantee between 6 and 10 pieces of junk.
+      // Guarantee between 6 and 10 junk pieces.
       const junkCount = randomInt(6, 10);
+      let fishCaughtNames = [];
       let junkCaughtNames = [];
-      for (let i = 0; i < junkCount; i++) {
-        const caughtJunk = getWeightedCatch("junk");
-        junkCaughtNames.push(caughtJunk.name);
-        addJunk(playerData, caughtJunk.name);
+
+      // For each fish to be caught.
+      for (let i = 0; i < fishCount; i++) {
+        const fish = getWeightedCatch("fish");
+        fishCaughtNames.push(fish.name);
+        addFish(playerData, fish.name);
       }
-      // Update lifetime trap data.
+      // For each junk piece to be caught.
+      for (let i = 0; i < junkCount; i++) {
+        const junk = getWeightedCatch("junk");
+        junkCaughtNames.push(junk.name);
+        addJunk(playerData, junk.name);
+      }
+
       playerData.lifetime.trap.times = (playerData.lifetime.trap.times || 0) + 1;
+
       // Reset trap state.
       playerData.trap.active = false;
       playerData.trap.start = 0;
       playerData.trap.end = 0;
       // Set a 30-minute cooldown.
       playerData.readyTimestamp = now + 1800000;
+      
       saveState();
       updateUI();
-      logMessage(
-        `You harvested your trap and collected ${fishCount} fish (${fishCaughtNames.join(", ")}) ` +
-        `and ${junkCount} pieces of junk (${junkCaughtNames.join(", ")}). ` +
-        `Cooldown set to 30 minutes.`
-      );
+      
+      const harvestMsg = `You harvested your trap and collected ${fishCount} fish (${fishCaughtNames.join(", ")}) and ${junkCount} pieces of junk (${junkCaughtNames.join(", ")}).`;
+      logMessage(harvestMsg);
+      console.log(harvestMsg);
     } else {
       const remaining = playerData.trap.end - now;
-      logMessage(`Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`);
+      const msg = `Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`;
+      logMessage(msg);
+      console.log(msg);
     }
   } else {
     logMessage("No trap is set.");
   }
   updateTrapUI();
 }
+
+
 
 
 function pullInTraps() {
@@ -426,7 +445,7 @@ async function loadLeaderboard() {
   const { data, error } = await supabaseClient
     .from("leaderboard")
     .select("name, score")
-    .order("score", { ascending: true })
+    .order("score", { ascending: false })
     .limit(10);
   if (error) {
     logMessage("Error loading leaderboard: " + error.message);

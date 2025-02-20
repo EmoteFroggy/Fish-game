@@ -307,3 +307,19 @@ font-size: 1rem;
 .hidden {
 display: none !important;
 }
+
+#leaderboard-display {
+  position: fixed;
+  top: 10px;
+  left: 10px; /* 10px away from the left edge */
+  width: 250px;
+  height: calc(100% - 20px);
+  background-color: #222;
+  color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  border: 2px solid #444;
+  border-radius: 8px;
+  z-index: 500;
+}

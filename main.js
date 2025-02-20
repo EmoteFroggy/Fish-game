@@ -72,17 +72,19 @@ function saveState() {
 // ================== UI UPDATE FUNCTIONS ==================
 function updateUI() {
   const statsDiv = document.getElementById('stats');
+  const fishCaught = playerData.lifetime.fish || 0;
+  const junkCaught = playerData.lifetime.junk || 0;
+  const baitUsed = playerData.lifetime.baitUsed || 0;
   statsDiv.innerHTML = `
       <p>Coins: ${playerData.coins}</p>
       <p>Fish in collection: ${playerData.catch.fish || 0}</p>
       <p>Junk in collection: ${playerData.catch.junk || 0}</p>
       <p>Fishing attempts: ${playerData.lifetime.attempts}</p>
-      <p>Max fish size: ${playerData.lifetime.maxFishSize} cm ${
-    playerData.lifetime.maxFishType
-      ? '(' + playerData.lifetime.maxFishType + ')'
-      : ''
-  }</p>
+      <p>Max fish size: ${playerData.lifetime.maxFishSize} cm ${playerData.lifetime.maxFishType? '(' + playerData.lifetime.maxFishType + ')': ''}</p>
       <p>Trap active: ${playerData.trap.active ? 'Yes' : 'No'}</p>
+      <p>Fish caught: ${fishCaught}</p>
+      <p>Junk caught: ${junkCaught}</p>
+      <p>Bait Used: ${baitUsed}</p>
     `;
 }
 
@@ -371,34 +373,7 @@ function pullInTraps() {
   updateTrapUI();
 }
 
-// ================== STATS & LEADERBOARD FUNCTIONS ==================
-function statsCommand() {
-  if (!playerData || !playerData.lifetime) {
-    logMessage('No stats available.');
-    return;
-  }
-  const attempts = playerData.lifetime.attempts || 0;
-  const fishCaught = playerData.lifetime.fish || 0;
-  const junkCaught = playerData.lifetime.junk || 0;
-  const baitUsed = playerData.lifetime.baitUsed || 0;
-  const maxFishSize = playerData.lifetime.maxFishSize || 0;
-  const maxFishType = playerData.lifetime.maxFishType || '';
-  const coins = playerData.coins || 0;
-
-  const statsMessage = `
-    Your Stats:<br>
-    Attempts: ${attempts}<br>
-    Fish caught: ${fishCaught}<br>
-    Junk caught: ${junkCaught}<br>
-    Bait Used: ${baitUsed}<br>
-    Max Fish: ${maxFishSize} cm ${
-    maxFishType ? '(' + maxFishType + ')' : ''
-  }<br>
-    Coins: ${coins}
-  `;
-  logMessage(statsMessage);
-}
-
+// ================== LEADERBOARD FUNCTIONS ==================
 function calculateScore() {
   return playerData.catch.fish || 0;
 }
@@ -663,16 +638,6 @@ function sellSelectedItems() {
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded and parsed.');
-  if (!document.getElementById('stats-btn')) {
-    console.error(
-      "Stats button not found! Ensure your HTML includes an element with id='stats-btn'."
-    );
-  }
-  if (!document.getElementById('log')) {
-    console.error(
-      "Log element (with id='log') not found! Please add one in your HTML."
-    );
-  }
 
   loadState();
 
@@ -687,12 +652,12 @@ document.addEventListener('DOMContentLoaded', () => {
   updateUI();
   updateTrapUI();
   loadLog();
+  loadLeaderboard();
 
-  const statsBtn = document.getElementById('stats-btn');
-  if (statsBtn) {
-    statsBtn.addEventListener('click', statsCommand);
-    console.log('Stats button listener attached.');
-  }
+  setInterval(() => {
+    loadLeaderboard();
+    submitAutoScore(true);
+  }, 5000);
 
   const fishNoBaitBtn = document.getElementById('fish-no-bait-btn');
   if (fishNoBaitBtn) {
@@ -772,12 +737,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (pullBtn) {
     pullBtn.addEventListener("click", pullInTraps);
   }
-  
-  setInterval(() => {
-    loadLeaderboard();
-    submitAutoScore(true);
-  }, 5000);
-
 });
 
 // ================== ITEM TYPES DEFINITION ==================

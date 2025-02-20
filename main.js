@@ -1,9 +1,6 @@
-// ================== Supabase Client Initialization ==================
-// Ensure the Supabase script is loaded in your HTML BEFORE main.js is loaded.
-// Replace the placeholders with your actual Supabase Project URL and anon key.
-const SUPABASE_URL = "https://yzhspdhbbanfluzvwjac.supabase.co";  // e.g. https://abcxyz.supabase.co
+const SUPABASE_URL = "https://yzhspdhbbanfluzvwjac.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6aHNwZGhiYmFuZmx1enZ3amFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk5OTM0ODIsImV4cCI6MjA1NTU2OTQ4Mn0.-Pfg4CMHeW7T3mN_aXjviA1tPXebcrY7g-oJhD2se6E";               // Your Supabase anon key
-const { createClient } = supabase; // extract createClient from the global supabase object.
+const { createClient } = supabase; 
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ================== GLOBAL VARIABLES & STATE MANAGEMENT ==================
@@ -340,8 +337,6 @@ function harvestTrap() {
       playerData.trap.active = false;
       playerData.trap.start = 0;
       playerData.trap.end = 0;
-      // Set a 30-minute cooldown.
-      playerData.readyTimestamp = now + 1800000;
       
       saveState();
       updateUI();
@@ -360,9 +355,6 @@ function harvestTrap() {
   }
   updateTrapUI();
 }
-
-
-
 
 function pullInTraps() {
   if (playerData.trap.active) {
@@ -501,89 +493,95 @@ function setupUsernamePopup() {
 
 
 function showCollectionPopup() {
-  if (!playerData.name) return;
-
   const popup = document.getElementById('collection-popup');
   const grid = document.getElementById('collection-grid');
   grid.innerHTML = '';
 
-  // Create separate containers for fish and junk
-  const fishSection = document.createElement('div');
-  fishSection.className = 'collection-section fish-section';
+  // Create a container for both sections.
+  const container = document.createElement("div");
+  container.className = "collection-container";
+
+  // Create the Fish section.
+  const fishSection = document.createElement("div");
+  fishSection.className = "collection-section fish-section";
   fishSection.innerHTML = '<h3>Fish Collection</h3>';
 
-  const junkSection = document.createElement('div');
-  junkSection.className = 'collection-section junk-section';
+  // Create the Junk section.
+  const junkSection = document.createElement("div");
+  junkSection.className = "collection-section junk-section";
   junkSection.innerHTML = '<h3>Junk Collection</h3>';
 
-  // Loop through the collection of items.
   for (const [emoji, count] of Object.entries(playerData.catch.types)) {
     if (count > 0) {
       const itemData = itemTypes.find(item => item.name === emoji);
       if (!itemData) continue;
-      
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'collection-item';
-      itemDiv.setAttribute('data-emoji', emoji);
-      // Add a max attribute equal to count for the input field.
+
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "collection-item";
+      itemDiv.setAttribute("data-emoji", emoji);
+
+      // Use a new markup style: an image area and a count label.
       itemDiv.innerHTML = `
-        <span class="emoji">${emoji}</span>
-        <span class="count">(${count})</span>
+        <div class="item-image">${emoji}</div>
+        <div class="item-count">x${count}</div>
         <div class="sell-input-container hidden">
           <input type="number" min="1" max="${count}" value="1" class="sell-amount-input" />
         </div>
       `;
-      
-      itemDiv.addEventListener('click', function(e) {
-        if (e.target.tagName.toLowerCase() === 'input') return;
-        this.classList.toggle('selected');
-        if (count > 1) {
-          const inputContainer = this.querySelector('.sell-input-container');
-          inputContainer.classList.toggle('hidden');
+
+      // Toggle selection: clicking (except on the input) toggles the "selected" class.
+      itemDiv.addEventListener("click", function(e) {
+        if (e.target.tagName.toLowerCase() === "input") return;
+        this.classList.toggle("selected");
+        const inputContainer = this.querySelector(".sell-input-container");
+        if (inputContainer) {
+          inputContainer.classList.toggle("hidden");
         }
       });
-      
-      const inputField = itemDiv.querySelector('.sell-amount-input');
+      const inputField = itemDiv.querySelector(".sell-amount-input");
       if (inputField) {
-        inputField.addEventListener('click', e => e.stopPropagation());
+        inputField.addEventListener("click", e => e.stopPropagation());
       }
-      
-      // Append the itemDiv to the correct section.
-      if (itemData.type === 'fish') {
+
+      // Append to the correct section based on item type.
+      if (itemData.type === "fish") {
         fishSection.appendChild(itemDiv);
-      } else if (itemData.type === 'junk') {
+      } else if (itemData.type === "junk") {
         junkSection.appendChild(itemDiv);
       }
     }
   }
 
-  // Append "Sell All" button for each category.
-  const sellAllFishBtn = document.createElement('button');
-  sellAllFishBtn.className = 'sell-all';
-  sellAllFishBtn.textContent = 'Sell All Fish';
-  sellAllFishBtn.addEventListener('click', () => sellAllForCategory('fish'));
+  // Add a "Sell All" button for each category.
+  const sellAllFishBtn = document.createElement("button");
+  sellAllFishBtn.className = "sell-all-btn";
+  sellAllFishBtn.textContent = "Sell All Fish";
+  sellAllFishBtn.addEventListener("click", () => sellAllForCategory("fish"));
   fishSection.appendChild(sellAllFishBtn);
-  
-  const sellAllJunkBtn = document.createElement('button');
-  sellAllJunkBtn.className = 'sell-all';
-  sellAllJunkBtn.textContent = 'Sell All Junk';
-  sellAllJunkBtn.addEventListener('click', () => sellAllForCategory('junk'));
+
+  const sellAllJunkBtn = document.createElement("button");
+  sellAllJunkBtn.className = "sell-all-btn";
+  sellAllJunkBtn.textContent = "Sell All Junk";
+  sellAllJunkBtn.addEventListener("click", () => sellAllForCategory("junk"));
   junkSection.appendChild(sellAllJunkBtn);
-  
-  grid.appendChild(fishSection);
-  grid.appendChild(junkSection);
-  
-  // Ensure the Sell Selected button is in the popup
-  let sellButton = document.getElementById('sell-selected-btn');
+
+  container.appendChild(fishSection);
+  container.appendChild(junkSection);
+  grid.appendChild(container);
+
+  // Ensure the "Sell Selected" button is present.
+  let sellButton = document.getElementById("sell-selected-btn");
   if (!sellButton) {
-    sellButton = document.createElement('button');
-    sellButton.id = 'sell-selected-btn';
-    sellButton.textContent = 'Sell Selected';
-    sellButton.addEventListener('click', sellSelectedItems);
-    document.querySelector('#collection-popup .popup-content').appendChild(sellButton);
+    sellButton = document.createElement("button");
+    sellButton.id = "sell-selected-btn";
+    sellButton.className = "sell-selected-btn";
+    sellButton.textContent = "Sell Selected";
+    sellButton.addEventListener("click", sellSelectedItems);
+    document.querySelector("#collection-popup .popup-content").appendChild(sellButton);
   }
-  popup.classList.remove('hidden');
+  popup.classList.remove("hidden");
 }
+
 
 function sellAllForCategory(category) {
   const grid = document.getElementById("collection-grid");
@@ -596,15 +594,15 @@ function sellAllForCategory(category) {
       if (count > 0) {
         const inputField = itemDiv.querySelector(".sell-amount-input");
         if (inputField) {
-          inputField.value = count; // Set the input to the available count.
+          inputField.value = count;
         }
-        itemDiv.classList.add("selected"); // Mark it as selected.
+        itemDiv.classList.add("selected");
       }
     }
   });
-  // Now sell all the selected items.
   sellSelectedItems();
 }
+
 
 
 function sellSelectedItems() {

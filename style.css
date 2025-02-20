@@ -8,8 +8,9 @@ body {
   background: #121212;
   color: #e0e0e0;
   font-family: 'Segoe UI', sans-serif;
-  padding: 1rem;
+  padding: 9px;
   margin: 0;
+  overflow-x: hidden;
 }
 
 header, main, .action-group, #log {
@@ -28,8 +29,10 @@ h1 {
 }
 
 main {
+  width: 90%;
   max-width: 800px;
   margin: 0 auto;
+  padding: 0 10px;
 }
 
 #stats-panel,
@@ -86,16 +89,10 @@ input[type="number"] {
 }
 
 #log {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  overflow-y: auto;
-  padding: 0.5rem;
-  background: #1f1f1f;
-  border: 1px solid #333;
-  border-radius: 8px;
-  max-height: 300px;
-  margin-top: 1rem;
+  max-height: 300px;  /* Always show the scrollbar */
+  width: 100%;
+  box-sizing: border-box;
+  font-family: monospace;
 }
 
 
@@ -112,6 +109,7 @@ input[type="number"] {
   padding: 0.75rem 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   animation: fadeIn 0.4s ease;
+  margin: 6px 0;
 }
 
 .message .timestamp {
@@ -135,8 +133,8 @@ input[type="number"] {
   top: 0;
   left: 0;
   background: rgba(0, 0, 0, 0.8);
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -309,11 +307,11 @@ display: none !important;
 }
 
 #leaderboard-display {
-  position:absolute;
-  top: 122px;
-  left: 290px; /* 10px away from the left edge */
+  position: fixed;
+  top: 116px;
+  left: calc((100vw - 800px) / 2 - 270px);
   width: 250px;
-  height: calc(100% - 129px);
+  height: auto;
   background-color: #222;
   color: #fff;
   padding: 20px;
@@ -322,4 +320,26 @@ display: none !important;
   border: 2px solid #444;
   border-radius: 8px;
   z-index: 500;
+}
+
+@media screen and (max-width: 1024px) {
+  #leaderboard-display {
+    left: calc((100vw - 800px) / 2 - 250px);
+    width: 220px;
+    padding: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #leaderboard-display {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    margin-top: 20px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+  }
 }

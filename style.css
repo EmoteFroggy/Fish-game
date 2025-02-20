@@ -309,11 +309,11 @@ display: none !important;
 }
 
 #leaderboard-display {
-  position: fixed;
-  top: 10px;
-  left: 10px; /* 10px away from the left edge */
+  position:absolute;
+  top: 122px;
+  left: 290px; /* 10px away from the left edge */
   width: 250px;
-  height: calc(100% - 20px);
+  height: calc(100% - 129px);
   background-color: #222;
   color: #fff;
   padding: 20px;

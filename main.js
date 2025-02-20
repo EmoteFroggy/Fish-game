@@ -679,10 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadState();
 
   if (playerData.name && playerData.name.trim().length > 0) {
-    const usernamePopup = document.getElementById("username-popup");
-    if (usernamePopup) {
-      usernamePopup.parentNode.removeChild(usernamePopup);
-    }
+    document.getElementById("username-popup").style.setProperty("display", "none", "important");
   } else {
     showUsernamePopup();
     setupUsernamePopup();

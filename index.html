@@ -13,14 +13,12 @@
     <header>
       <img src="https://cdn.7tv.app/emote/01FN57TJS8000EXJQ7MWJVS124/3x.png" alt="Fishing game logo">
     </header>
-
     <main>
       <section id="stats-panel">
         <h2>Your Stats</h2>
         <div id="stats">
         </div>
       </section>
-
       <section id="actions">
         <h2>Actions</h2>
         <div class="action-group">
@@ -53,6 +51,14 @@
         <span id="close-popup" class="close">&times;</span>
         <h2>Your Collection</h2>
         <div id="collection-grid"></div>
+      </div>
+    </div>
+    <div id="username-popup">
+      <div class="popup-content">
+        <h2>Enter Your Username</h2>
+        <input type="text" id="username-input" placeholder="Enter a unique username" />
+        <p id="username-error" class="error" style="display:none;"></p>
+        <button id="username-submit-btn">Submit</button>
       </div>
     </div>
     <script src="main.js"></script>

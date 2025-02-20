@@ -412,32 +412,22 @@ function calculateScore() {
 }
 
 async function submitAutoScore(silent = false) {
-  let name = playerData.name;
-  if (!name) {
-    name = prompt("Enter your name for leaderboard:");
-    if (name) {
-      playerData.name = name.trim();
-      saveState();
-    } else {
-      if (!silent) logMessage("Name is required.");
-      return;
-    }
+  if (!playerData.name) {
+    if (!silent) logMessage("Username missing. Please enter a username at the prompt.");
+    return;
   }
   const score = calculateScore();
-  if (!silent) logMessage("Submitting score for " + name + ": " + score);
+  if (!silent) logMessage("Submitting score for " + playerData.name + ": " + score);
 
-  // Use upsert to update the record if it already exists.
   const { data, error } = await supabaseClient
     .from("leaderboard")
-    .upsert(
-      { name, score, submission_origin: "submit-my-score" },
-      { onConflict: 'name' }
-    );
-
+    .upsert({ name: playerData.name, score, submission_origin: "submit-my-score" }, { onConflict: 'name' });
   if (error) {
-    if (!silent) logMessage("Error updating score: " + error.message);
+    if (!silent)
+      logMessage("Error updating score: " + error.message);
   } else {
-    if (!silent) logMessage("Score updated successfully!");
+    if (!silent)
+      logMessage("Score updated successfully!");
   }
 }
 
@@ -462,74 +452,158 @@ async function loadLeaderboard() {
 }
 
 // ================== COLLECTION POPUP & SELL FUNCTIONS ==================
-function showCollectionPopup() {
-  const popup = document.getElementById("collection-popup");
-  const grid = document.getElementById("collection-grid");
-  grid.innerHTML = "";
+function showUsernamePopup() {
+  const popup = document.getElementById("username-popup");
+  popup.style.display = "block";
+}
 
-  // Create separate containers for fish and junk.
-  const fishSection = document.createElement("div");
-  fishSection.className = "collection-section fish-section";
-  fishSection.innerHTML = "<h3>Fish Collection</h3>";
+async function validateUsername(username) {
+  // Query the leaderboard table to see if this username exists.
+  const { data, error } = await supabaseClient
+    .from("leaderboard")
+    .select("name")
+    .eq("name", username)
+    .single();
   
-  const junkSection = document.createElement("div");
-  junkSection.className = "collection-section junk-section";
-  junkSection.innerHTML = "<h3>Junk Collection</h3>";
+  // If a row is found, then the username is taken.
+  if (data) {
+    return { valid: false, message: "Username is already taken." };
+  }
+  // Otherwise, assume it's OK.
+  return { valid: true };
+}
 
-  // Loop through the collection items.
+function setupUsernamePopup() {
+  const submitBtn = document.getElementById("username-submit-btn");
+  submitBtn.addEventListener("click", async () => {
+    const usernameInput = document.getElementById("username-input");
+    const errorEl = document.getElementById("username-error");
+    const username = usernameInput.value.trim();
+    if (!username) {
+      errorEl.style.display = "block";
+      errorEl.textContent = "Username cannot be empty.";
+      return;
+    }
+    const result = await validateUsername(username);
+    if (!result.valid) {
+      errorEl.style.display = "block";
+      errorEl.textContent = result.message;
+      return;
+    }
+    errorEl.style.display = "none";
+    playerData.name = username;
+    saveState();
+    // Force the username popup to hide using inline style with !important
+    document.getElementById("username-popup").style.setProperty("display", "none", "important");
+  });
+}
+
+
+
+function showCollectionPopup() {
+  if (!playerData.name) return;
+
+  const popup = document.getElementById('collection-popup');
+  const grid = document.getElementById('collection-grid');
+  grid.innerHTML = '';
+
+  // Create separate containers for fish and junk
+  const fishSection = document.createElement('div');
+  fishSection.className = 'collection-section fish-section';
+  fishSection.innerHTML = '<h3>Fish Collection</h3>';
+
+  const junkSection = document.createElement('div');
+  junkSection.className = 'collection-section junk-section';
+  junkSection.innerHTML = '<h3>Junk Collection</h3>';
+
+  // Loop through the collection of items.
   for (const [emoji, count] of Object.entries(playerData.catch.types)) {
     if (count > 0) {
       const itemData = itemTypes.find(item => item.name === emoji);
       if (!itemData) continue;
       
-      const itemDiv = document.createElement("div");
-      itemDiv.className = "collection-item";
-      itemDiv.setAttribute("data-emoji", emoji);
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'collection-item';
+      itemDiv.setAttribute('data-emoji', emoji);
+      // Add a max attribute equal to count for the input field.
       itemDiv.innerHTML = `
         <span class="emoji">${emoji}</span>
         <span class="count">(${count})</span>
         <div class="sell-input-container hidden">
-          <input type="number" min="1" value="1" class="sell-amount-input" />
+          <input type="number" min="1" max="${count}" value="1" class="sell-amount-input" />
         </div>
       `;
       
-      // Add click behavior.
-      itemDiv.addEventListener("click", function(e) {
-        if (e.target.tagName.toLowerCase() === "input") return;
-        this.classList.toggle("selected");
-        // Toggle number input visibility if more than one item exists.
+      itemDiv.addEventListener('click', function(e) {
+        if (e.target.tagName.toLowerCase() === 'input') return;
+        this.classList.toggle('selected');
         if (count > 1) {
-          const inputContainer = this.querySelector(".sell-input-container");
-          inputContainer.classList.toggle("hidden");
+          const inputContainer = this.querySelector('.sell-input-container');
+          inputContainer.classList.toggle('hidden');
         }
       });
-      const inputField = itemDiv.querySelector(".sell-amount-input");
+      
+      const inputField = itemDiv.querySelector('.sell-amount-input');
       if (inputField) {
-        inputField.addEventListener("click", e => e.stopPropagation());
+        inputField.addEventListener('click', e => e.stopPropagation());
       }
       
-      // Append itemDiv to the appropriate section.
-      if (itemData.type === "fish") {
+      // Append the itemDiv to the correct section.
+      if (itemData.type === 'fish') {
         fishSection.appendChild(itemDiv);
-      } else if (itemData.type === "junk") {
+      } else if (itemData.type === 'junk') {
         junkSection.appendChild(itemDiv);
       }
     }
   }
+
+  // Append "Sell All" button for each category.
+  const sellAllFishBtn = document.createElement('button');
+  sellAllFishBtn.className = 'sell-all';
+  sellAllFishBtn.textContent = 'Sell All Fish';
+  sellAllFishBtn.addEventListener('click', () => sellAllForCategory('fish'));
+  fishSection.appendChild(sellAllFishBtn);
+  
+  const sellAllJunkBtn = document.createElement('button');
+  sellAllJunkBtn.className = 'sell-all';
+  sellAllJunkBtn.textContent = 'Sell All Junk';
+  sellAllJunkBtn.addEventListener('click', () => sellAllForCategory('junk'));
+  junkSection.appendChild(sellAllJunkBtn);
   
   grid.appendChild(fishSection);
   grid.appendChild(junkSection);
-
-  // Append the Sell Selected button if it does not exist yet.
-  let sellButton = document.getElementById("sell-selected-btn");
+  
+  // Ensure the Sell Selected button is in the popup
+  let sellButton = document.getElementById('sell-selected-btn');
   if (!sellButton) {
-    sellButton = document.createElement("button");
-    sellButton.id = "sell-selected-btn";
-    sellButton.textContent = "Sell Selected";
-    sellButton.addEventListener("click", sellSelectedItems);
-    document.querySelector("#collection-popup .popup-content").appendChild(sellButton);
+    sellButton = document.createElement('button');
+    sellButton.id = 'sell-selected-btn';
+    sellButton.textContent = 'Sell Selected';
+    sellButton.addEventListener('click', sellSelectedItems);
+    document.querySelector('#collection-popup .popup-content').appendChild(sellButton);
   }
-  popup.classList.remove("hidden");
+  popup.classList.remove('hidden');
+}
+
+function sellAllForCategory(category) {
+  const grid = document.getElementById("collection-grid");
+  const items = grid.querySelectorAll(".collection-item");
+  items.forEach(itemDiv => {
+    const emoji = itemDiv.getAttribute("data-emoji");
+    const itemData = itemTypes.find(item => item.name === emoji);
+    if (itemData && itemData.type === category) {
+      const count = playerData.catch.types[emoji] || 0;
+      if (count > 0) {
+        const inputField = itemDiv.querySelector(".sell-amount-input");
+        if (inputField) {
+          inputField.value = count; // Set the input to the available count.
+        }
+        itemDiv.classList.add("selected"); // Mark it as selected.
+      }
+    }
+  });
+  // Now sell all the selected items.
+  sellSelectedItems();
 }
 
 
@@ -603,6 +677,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadState();
+
+  if (!playerData.name) {
+    showUsernamePopup();
+    setupUsernamePopup();
+  }
+
   checkTrapExpiration();
   updateUI();
   updateTrapUI();

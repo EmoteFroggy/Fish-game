@@ -663,100 +663,61 @@ function sellSelectedItems() {
 
 // ================== EVENT LISTENERS & INITIALIZATION ==================
 
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM fully loaded and parsed.');
-  if (!document.getElementById('stats-btn')) {
-    console.error(
-      "Stats button not found! Ensure your HTML includes an element with id='stats-btn'."
-    );
-  }
-  if (!document.getElementById('log')) {
-    console.error(
-      "Log element (with id='log') not found! Please add one in your HTML."
-    );
-  }
-
+document.addEventListener("DOMContentLoaded", () => {
   loadState();
-
-  if (!playerData.name) {
+  // If a username is already stored (even considering extra spaces), hide the popup;
+  // otherwise, display and set up the username popup.
+  if (playerData.name && playerData.name.trim().length > 0) {
+    document.getElementById("username-popup").style.setProperty("display", "none", "important");
+  } else {
     showUsernamePopup();
     setupUsernamePopup();
   }
-
+  
+  loadLog();
   checkTrapExpiration();
   updateUI();
   updateTrapUI();
-  loadLog();
 
-  const statsBtn = document.getElementById('stats-btn');
+  // Attach other event listeners...
+  const statsBtn = document.getElementById("stats-btn");
   if (statsBtn) {
-    statsBtn.addEventListener('click', statsCommand);
-    console.log('Stats button listener attached.');
+    statsBtn.addEventListener("click", statsCommand);
   }
-
-  const fishNoBaitBtn = document.getElementById('fish-no-bait-btn');
+  const fishNoBaitBtn = document.getElementById("fish-no-bait-btn");
   if (fishNoBaitBtn) {
-    fishNoBaitBtn.addEventListener('click', () => {
-      try {
-        fishCommand('');
-      } catch (e) {
-        logMessage('Error: ' + e.message);
-      }
-    });
+    fishNoBaitBtn.addEventListener("click", () => { try { fishCommand(''); } catch (e) { logMessage('Error: ' + e.message); } });
   }
-  const fishWormBtn = document.getElementById('fish-worm-btn');
+  const fishWormBtn = document.getElementById("fish-worm-btn");
   if (fishWormBtn) {
-    fishWormBtn.addEventListener('click', () => {
-      try {
-        fishCommand('worm');
-      } catch (e) {
-        logMessage('Error: ' + e.message);
-      }
-    });
+    fishWormBtn.addEventListener("click", () => { try { fishCommand('worm'); } catch (e) { logMessage('Error: ' + e.message); } });
   }
-  const fishFlyBtn = document.getElementById('fish-fly-btn');
+  const fishFlyBtn = document.getElementById("fish-fly-btn");
   if (fishFlyBtn) {
-    fishFlyBtn.addEventListener('click', () => {
-      try {
-        fishCommand('fly');
-      } catch (e) {
-        logMessage('Error: ' + e.message);
-      }
-    });
+    fishFlyBtn.addEventListener("click", () => { try { fishCommand('fly'); } catch (e) { logMessage('Error: ' + e.message); } });
   }
-  const fishCricketBtn = document.getElementById('fish-cricket-btn');
+  const fishCricketBtn = document.getElementById("fish-cricket-btn");
   if (fishCricketBtn) {
-    fishCricketBtn.addEventListener('click', () => {
-      try {
-        fishCommand('cricket');
-      } catch (e) {
-        logMessage('Error: ' + e.message);
-      }
-    });
+    fishCricketBtn.addEventListener("click", () => { try { fishCommand('cricket'); } catch (e) { logMessage('Error: ' + e.message); } });
   }
-
-  const submitScoreBtn = document.getElementById('submit-score-btn');
+  const submitScoreBtn = document.getElementById("submit-score-btn");
   if (submitScoreBtn) {
-    submitScoreBtn.addEventListener('click', submitAutoScore);
+    submitScoreBtn.addEventListener("click", submitAutoScore);
   }
-
-  const loadLeaderboardBtn = document.getElementById('load-leaderboard-btn');
-  if (loadLeaderboardBtn) {
-    loadLeaderboardBtn.addEventListener('click', loadLeaderboard);
+  const loadLbBtn = document.getElementById("load-leaderboard-btn");
+  if (loadLbBtn) {
+    loadLbBtn.addEventListener("click", loadLeaderboard);
   }
-
-  const showCollectionBtn = document.getElementById('show-btn');
+  const showCollectionBtn = document.getElementById("show-btn");
   if (showCollectionBtn) {
-    showCollectionBtn.addEventListener('click', showCollectionPopup);
+    showCollectionBtn.addEventListener("click", showCollectionPopup);
   }
-
-  const closePopupBtn = document.getElementById('close-popup');
+  const closePopupBtn = document.getElementById("close-popup");
   if (closePopupBtn) {
-    closePopupBtn.addEventListener('click', () => {
-      document.getElementById('collection-popup').classList.add('hidden');
+    closePopupBtn.addEventListener("click", () => {
+      document.getElementById("collection-popup").classList.add("hidden");
     });
   }
-
   const trapBtn = document.getElementById("trap-btn");
   if (trapBtn) {
     trapBtn.addEventListener("click", () => {
@@ -767,7 +728,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
   const pullBtn = document.getElementById("pull-traps-btn");
   if (pullBtn) {
     pullBtn.addEventListener("click", pullInTraps);

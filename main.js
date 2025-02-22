@@ -251,23 +251,17 @@ function addJunk(state, emoji) {
 function checkTrapExpiration() {
   if (playerData.trap.active) {
     const now = Date.now();
-    console.log("Before expiration check, trap state:", playerData.trap, "Now:", now);
     if (now >= playerData.trap.end) {
       playerData.trap.active = false;
       playerData.trap.start = 0;
       playerData.trap.end = 0;
       saveState();
-      console.log("Trap expired. New trap state:", playerData.trap);
-    } else {
-      console.log("Trap is still active. Time remaining (ms):", playerData.trap.end - now);
-    }
   }
 }
 
 function updateTrapUI() {
   const trapBtn = document.getElementById("trap-btn");
   const pullBtn = document.getElementById("pull-traps-btn");
-  console.log("Updating trap UI. Current trap state:", playerData.trap);
   if (playerData.trap.active) {
     trapBtn.textContent = "Harvest Trap";
     if (pullBtn) {
@@ -293,7 +287,7 @@ function trapCommand() {
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 3600000; 
+    playerData.trap.duration = 3600000;  // 1 hour duration
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();
@@ -308,9 +302,9 @@ function harvestTrap() {
   const now = Date.now();
   if (playerData.trap.active) {
     if (now >= playerData.trap.end) {
-      console.log("Trap expired. Harvesting now...");
-      const fishCount = randomInt(0, 1);
-      const junkCount = randomInt(5, 8);
+      const fishCount = randomInt(0, 2);
+      const junkCount = randomInt(4, 8);
+      let harvestMsg = "";
       let fishCaughtNames = [];
       let junkCaughtNames = [];
 
@@ -331,17 +325,20 @@ function harvestTrap() {
       playerData.trap.start = 0;
       playerData.trap.end = 0;
       
+      if (fishCount === 0) {
+        harvestMsg = `You harvested your trap and collected ${fishCount} fish and ${junkCount} pieces of junk (${junkCaughtNames.join(", ")}).`;
+      } else {
+        harvestMsg = `You harvested your trap and collected ${fishCount} fish (${fishCaughtNames.join(", ")}) and ${junkCount} pieces of junk (${junkCaughtNames.join(", ")}).`;
+      }
+      
       saveState();
       updateUI();
-      
-      const harvestMsg = `You harvested your trap and collected ${fishCount} fish (${fishCaughtNames.join(", ")}) and ${junkCount} pieces of junk (${junkCaughtNames.join(", ")}).`;
+
       logMessage(harvestMsg);
-      console.log(harvestMsg);
     } else {
       const remaining = playerData.trap.end - now;
       const msg = `Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`;
       logMessage(msg);
-      console.log(msg);
     }
   } else {
     logMessage("No trap is set.");
@@ -617,8 +614,6 @@ function sellSelectedItems() {
 // ================== EVENT LISTENERS & INITIALIZATION ==================
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM fully loaded and parsed.');
-
   loadState();
 
   if (playerData.name && playerData.name.trim().length > 0) {

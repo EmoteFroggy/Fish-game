@@ -284,7 +284,7 @@ function updateTrapUI() {
 function trapCommand() {
 
   if (playerData.coins < 20) {
-    logMessage("You need 10 coins to set a trap.");
+    logMessage("You need 20 coins to set a trap.");
     return;
   }
 

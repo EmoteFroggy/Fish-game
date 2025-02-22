@@ -389,14 +389,18 @@ async function loadLeaderboard() {
     .from("leaderboard")
     .select("name, score")
     .order("score", { ascending: false })
+    .order("name", { ascending: true })
+    
   if (error) {
     logMessage("Error loading leaderboard: " + error.message);
     return;
   }
+  
   let html = `<h2>Global Leaderboard</h2>`;
   data.forEach((entry, index) => {
     html += `<div>${index + 1}. ${entry.name} - ${entry.score}</div>`;
   });
+  
   const lbDisplay = document.getElementById("leaderboard-display");
   if (lbDisplay) {
     lbDisplay.innerHTML = html;

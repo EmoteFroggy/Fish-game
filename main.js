@@ -256,6 +256,7 @@ function checkTrapExpiration() {
       playerData.trap.start = 0;
       playerData.trap.end = 0;
       saveState();
+    }
   }
 }
 

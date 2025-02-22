@@ -8,7 +8,7 @@ body {
   background: #121212;
   color: #e0e0e0;
   font-family: 'Segoe UI', sans-serif;
-  padding: 9px;
+  padding: 1px;
   margin: 0;
   overflow-x: hidden;
 }
@@ -343,3 +343,4 @@ display: none !important;
     padding: 20px;
   }
 }
+

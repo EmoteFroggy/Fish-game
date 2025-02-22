@@ -34,7 +34,6 @@ function getInitialStats() {
       luckyStreak: 0,
       maxFishSize: 0,
       maxFishType: "",
-      // Add default trap stats inside lifetime:
       trap: {
          times: 0,
          cancelled: 0
@@ -49,7 +48,6 @@ function loadState() {
   if (stored) {
     try {
       playerData = JSON.parse(stored);
-      // Ensure that lifetime.trap exists:
       if (!playerData.lifetime.trap) {
         playerData.lifetime.trap = { times: 0, cancelled: 0 };
       }
@@ -149,18 +147,14 @@ function loadLog() {
 // ================== FISHING FUNCTIONS ==================
 function fishCommand(baitInput) {
   if (playerData.trap.active) {
-    logMessage(
-      'You cannot fish while your trap is set. Please harvest or cancel your trap first.'
-    );
+    logMessage('You cannot fish while your trap is set. Please harvest or cancel your trap first.');
     return;
   }
 
   const now = Date.now();
   if (playerData.readyTimestamp && now < playerData.readyTimestamp) {
     const remainingTime = playerData.readyTimestamp - now;
-    logMessage(
-      `Hold on! You can fish again in ${formatTimeDelta(remainingTime)}.`
-    );
+    logMessage(`Not so fast! You can fish again in ${formatTimeDelta(remainingTime)}.`);
     return;
   }
 
@@ -172,10 +166,7 @@ function fishCommand(baitInput) {
         b.name.toLowerCase() === baitInput.toLowerCase() ||
         b.emoji === baitInput
     );
-    if (playerData.coins < baitData.price) {
-      logMessage(
-        `You need ${baitData.price} coins for a ${baitInput} (you have ${playerData.coins}).`
-      );
+    if (playerData.coins < baitData.price) {logMessage(`You need ${baitData.price} coins for a ${baitInput} (you have ${playerData.coins}).`);
       return;
     }
     rollMaximum = baitData.roll;
@@ -204,9 +195,7 @@ function fishCommand(baitInput) {
     }
     saveState();
     updateUI();
-    logMessage(
-      `${message} (${formatTimeDelta(fishingDelay)} cooldown${appendix})`
-    );
+    logMessage(`${message} (${formatTimeDelta(fishingDelay)} cooldown${appendix})<br>${playerData.catch.dryStreak} casts since last fish caught`);
     return;
   }
 
@@ -293,6 +282,14 @@ function updateTrapUI() {
 }
 
 function trapCommand() {
+
+  if (playerData.coins < 20) {
+    logMessage("You need 10 coins to set a trap.");
+    return;
+  }
+
+  playerData.coins -= 20;
+
   const now = Date.now();
   if (!playerData.trap.active) {
     playerData.trap.active = true;
@@ -313,20 +310,16 @@ function harvestTrap() {
   if (playerData.trap.active) {
     if (now >= playerData.trap.end) {
       console.log("Trap expired. Harvesting now...");
-      // Guarantee between 1 and 2 fish.
-      const fishCount = randomInt(1, 2);
-      // Guarantee between 6 and 10 junk pieces.
-      const junkCount = randomInt(6, 10);
+      const fishCount = randomInt(0, 1);
+      const junkCount = randomInt(5, 8);
       let fishCaughtNames = [];
       let junkCaughtNames = [];
 
-      // For each fish to be caught.
       for (let i = 0; i < fishCount; i++) {
         const fish = getWeightedCatch("fish");
         fishCaughtNames.push(fish.name);
         addFish(playerData, fish.name);
       }
-      // For each junk piece to be caught.
       for (let i = 0; i < junkCount; i++) {
         const junk = getWeightedCatch("junk");
         junkCaughtNames.push(junk.name);
@@ -335,7 +328,6 @@ function harvestTrap() {
 
       playerData.lifetime.trap.times = (playerData.lifetime.trap.times || 0) + 1;
 
-      // Reset trap state.
       playerData.trap.active = false;
       playerData.trap.start = 0;
       playerData.trap.end = 0;
@@ -425,18 +417,15 @@ function showUsernamePopup() {
 }
 
 async function validateUsername(username) {
-  // Query the leaderboard table to see if this username exists.
   const { data, error } = await supabaseClient
     .from("leaderboard")
     .select("name")
     .eq("name", username)
     .single();
   
-  // If a row is found, then the username is taken.
   if (data) {
     return { valid: false, message: "Username is already taken." };
   }
-  // Otherwise, assume it's OK.
   return { valid: true };
 }
 
@@ -460,7 +449,6 @@ function setupUsernamePopup() {
     errorEl.style.display = "none";
     playerData.name = username;
     saveState();
-    // Force the username popup to hide using inline style with !important
     document.getElementById("username-popup").style.setProperty("display", "none", "important");
   });
 }
@@ -472,16 +460,13 @@ function showCollectionPopup() {
   const grid = document.getElementById('collection-grid');
   grid.innerHTML = '';
 
-  // Create a container for both sections.
   const container = document.createElement("div");
   container.className = "collection-container";
 
-  // Create the Fish section.
   const fishSection = document.createElement("div");
   fishSection.className = "collection-section fish-section";
   fishSection.innerHTML = '<h3>Fish Collection</h3>';
 
-  // Create the Junk section.
   const junkSection = document.createElement("div");
   junkSection.className = "collection-section junk-section";
   junkSection.innerHTML = '<h3>Junk Collection</h3>';
@@ -495,7 +480,6 @@ function showCollectionPopup() {
       itemDiv.className = "collection-item";
       itemDiv.setAttribute("data-emoji", emoji);
 
-      // Use a new markup style: an image area and a count label.
       itemDiv.innerHTML = `
         <div class="item-image">${emoji}</div>
         <div class="item-count">x${count}</div>
@@ -504,7 +488,6 @@ function showCollectionPopup() {
         </div>
       `;
 
-      // Toggle selection: clicking (except on the input) toggles the "selected" class.
       itemDiv.addEventListener("click", function(e) {
         if (e.target.tagName.toLowerCase() === "input") return;
         this.classList.toggle("selected");
@@ -518,7 +501,6 @@ function showCollectionPopup() {
         inputField.addEventListener("click", e => e.stopPropagation());
       }
 
-      // Append to the correct section based on item type.
       if (itemData.type === "fish") {
         fishSection.appendChild(itemDiv);
       } else if (itemData.type === "junk") {
@@ -527,7 +509,6 @@ function showCollectionPopup() {
     }
   }
 
-  // Add a "Sell All" button for each category.
   const sellAllFishBtn = document.createElement("button");
   sellAllFishBtn.className = "sell-all-btn";
   sellAllFishBtn.textContent = "Sell All Fish";
@@ -544,7 +525,6 @@ function showCollectionPopup() {
   container.appendChild(junkSection);
   grid.appendChild(container);
 
-  // Ensure the "Sell Selected" button is present.
   let sellButton = document.getElementById("sell-selected-btn");
   if (!sellButton) {
     sellButton = document.createElement("button");
@@ -647,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showUsernamePopup();
     setupUsernamePopup();
   }
+  
 
   checkTrapExpiration();
   updateUI();
@@ -754,6 +735,13 @@ const itemTypes = [
   { name: "🌿", sellable: true, size: false, type: "junk", price: 2, weight: 200 },
   { name: "🍂", sellable: true, size: false, type: "junk", price: 1, weight: 100 },
   { name: "🧦", sellable: true, size: false, type: "junk", price: 5, weight: 50 },
+  { name: "👓", sellable: true, size: false, type: "junk", price: 10, weight: 10 },
+  { name: "🔧", sellable: true, size: false, type: "junk", price: 15, weight: 5 },
+  { name: "🔩", sellable: true, size: false, type: "junk", price: 10, weight: 5 },
+  { name: "🧺", sellable: true, size: false, type: "junk", price: 10, weight: 5 },
+  { name: "🪸", sellable: true, size: false, type: "junk", price: 30, weight: 1 },
+  { name: "🧴", sellable: true, size: false, type: "junk", price: 10, weight: 5 },
+  { name: "🪠", sellable: true, size: false, type: "junk", price: 10, weight: 3 },
   // Fish items
   { name: "🦂", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
   { name: "🦑", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
@@ -771,5 +759,6 @@ const itemTypes = [
   { name: "🐸", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
   { name: "🐢", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
   { name: "🐙", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
-  { name: "🐚", sellable: true, size: false, type: "fish", price: 50, weight: 1 }
+  { name: "🐚", sellable: true, size: false, type: "fish", price: 50, weight: 1 },
+  { name: "🦪", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
 ];

@@ -374,7 +374,7 @@ async function submitAutoScore(silent = false) {
 
   const { data, error } = await supabaseClient
     .from("leaderboard")
-    .upsert({ name: playerData.name, score, submission_origin: "submit-my-score" }, { onConflict: 'name' });
+    .upsert({ name: playerData.name, score, player_data: playerData, submission_origin: "submit-my-score" }, { onConflict: 'name' });
   if (error) {
     if (!silent)
       logMessage("Error updating score: " + error.message);

@@ -282,7 +282,6 @@ function updateTrapUI() {
 }
 
 function trapCommand() {
-
   if (playerData.coins < 20) {
     logMessage("You need 20 coins to set a trap.");
     return;
@@ -397,7 +396,6 @@ async function loadLeaderboard() {
     .from("leaderboard")
     .select("name, score")
     .order("score", { ascending: false })
-    .limit(10);
   if (error) {
     logMessage("Error loading leaderboard: " + error.message);
     return;

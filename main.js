@@ -358,7 +358,7 @@ function pullInTraps() {
     playerData.lifetime.trap.cancelled++;
     saveState();
     updateUI();
-    logMessage("You pulled in your traps early, you have received no catchand your coins have been refunded.");
+    logMessage("You pulled in your traps early, you have received no catch and your coins have been refunded.");
     playerData.coins += 20;
   } else {
     logMessage("No trap is set.");

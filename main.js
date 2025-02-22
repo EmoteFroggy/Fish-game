@@ -78,7 +78,7 @@ function updateUI() {
       <p>Fish in collection: ${playerData.catch.fish || 0}</p>
       <p>Junk in collection: ${playerData.catch.junk || 0}</p>
       <p>Fishing attempts: ${playerData.lifetime.attempts}</p>
-      <p>Max fish size: ${playerData.lifetime.maxFishSize} cm ${playerData.lifetime.maxFishType? '(' + playerData.lifetime.maxFishType + ')': ''}</p>
+      <p>Your fish size record: ${playerData.lifetime.maxFishSize} cm ${playerData.lifetime.maxFishType? '(' + playerData.lifetime.maxFishType + ')': ''}</p>
       <p>Trap active: ${playerData.trap.active ? 'Yes' : 'No'}</p>
       <p>Fish caught: ${fishCaught}</p>
       <p>Junk caught: ${junkCaught}</p>
@@ -250,12 +250,7 @@ function addJunk(state, emoji) {
 // ================== TRAP FUNCTIONS ==================
 function checkTrapExpiration() {
   if (playerData.trap.active) {
-    const now = Date.now();
-    if (now >= playerData.trap.end) {
-      playerData.trap.active = false;
-      playerData.trap.start = 0;
-      playerData.trap.end = 0;
-      saveState();
+    if (Date.now() >= playerData.trap.end) {
     }
   }
 }
@@ -288,7 +283,7 @@ function trapCommand() {
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 3600000;  // 1 hour duration
+    playerData.trap.duration = 3600000; // 1 hour
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();

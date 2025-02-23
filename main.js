@@ -245,18 +245,18 @@ function updateTrapUI() {
 }
 
 function trapCommand() {
-  //if (playerData.coins < 20) {
-  //  addGameMessage("You need 20 coins to set a trap.");
-  //  return;
-  //}
+  if (playerData.coins < 20) {
+    addGameMessage("You need 20 coins to set a trap.");
+    return;
+  }
 
-  //playerData.coins -= 20;
+  playerData.coins -= 20;
 
   const now = Date.now();
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 0; // 1 hour
+    playerData.trap.duration = 3600000; // 1 hour
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();

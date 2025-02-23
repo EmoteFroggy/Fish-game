@@ -42,7 +42,6 @@ function getInitialStats() {
   };
 }
 
-
 function loadState() {
   const stored = localStorage.getItem("fishData");
   if (stored) {
@@ -62,7 +61,6 @@ function loadState() {
   }
 }
 
-
 function saveState() {
   localStorage.setItem("fishData", JSON.stringify(playerData));
 }
@@ -70,20 +68,17 @@ function saveState() {
 // ================== UI UPDATE FUNCTIONS ==================
 function updateUI() {
   const statsDiv = document.getElementById('stats');
-  const fishCaught = playerData.lifetime.fish || 0;
-  const junkCaught = playerData.lifetime.junk || 0;
-  const baitUsed = playerData.lifetime.baitUsed || 0;
   statsDiv.innerHTML = `
-      <p>Coins: ${playerData.coins}</p>
-      <p>Fish in collection: ${playerData.catch.fish || 0}</p>
-      <p>Junk in collection: ${playerData.catch.junk || 0}</p>
-      <p>Fishing attempts: ${playerData.lifetime.attempts}</p>
-      <p>Your fish size record: ${playerData.lifetime.maxFishSize} cm ${playerData.lifetime.maxFishType? '(' + playerData.lifetime.maxFishType + ')': ''}</p>
-      <p>Trap active: ${playerData.trap.active ? 'Yes' : 'No'}</p>
-      <p>Fish caught: ${fishCaught}</p>
-      <p>Junk caught: ${junkCaught}</p>
-      <p>Bait Used: ${baitUsed}</p>
-    `;
+    <div><span>Coins:</span><span>¢${playerData.coins}</span></div>
+    <div><span>Fish in collection:</span><span>${playerData.catch.fish}</span></div>
+    <div><span>Junk in collection:</span><span>${playerData.catch.junk}</span></div>
+    <div><span>Fishing attempts:</span><span>${playerData.lifetime.attempts}</span></div>
+    <div><span>Fish size record:</span><span>${playerData.lifetime.maxFishSize}cm</span></div>
+    <div><span>Trap active:</span><span>${playerData.trap.active ? 'Yes' : 'No'}</span></div>
+    <div><span>Fish caught:</span><span>${playerData.lifetime.fish}</span></div>
+    <div><span>Junk caught:</span><span>${playerData.lifetime.junk}</span></div>
+    <div><span>Bait used:</span><span>${playerData.lifetime.baitUsed}</span></div>
+  `;
 }
 
 function randomInt(min, max) {
@@ -101,60 +96,36 @@ function formatTimeDelta(ms) {
 }
 
 // ================== GAME LOG FUNCTIONS (with Caching) ==================
-function logMessage(message) {
-  const logDiv = document.getElementById("log");
-  const time = new Date().toLocaleTimeString();
-  const msgEl = document.createElement("div");
-  msgEl.className = "message";
-  msgEl.innerHTML = `<div class="timestamp">[${time}]</div>
-                     <div class="text">${message}</div>`;
-  logDiv.appendChild(msgEl);
-  while (logDiv.getElementsByClassName("message").length > 3) {
-    logDiv.removeChild(logDiv.firstChild);
-  }
-  logDiv.scrollTop = logDiv.scrollHeight;
+function getTimestamp() {
+  const now = new Date();
+  return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+}
+
+function addGameMessage(message) {
+  const log = document.getElementById("log");
+  const entry = document.createElement("div");
+  entry.className = "message";
+  entry.innerHTML = `
+    <span class="timestamp">[${getTimestamp()}]</span>
+    <br>
+    <span class="text">${message}</span>
+  `;
   
-  const messages = Array.from(logDiv.getElementsByClassName("message")).map(el => el.outerHTML);
-  localStorage.setItem("gameLog", JSON.stringify(messages));
-}
-
-function cacheLog() {
-  const logDiv = document.getElementById("log");
-  const messages = Array.from(logDiv.getElementsByClassName("message")).map(el => el.outerHTML);
-  localStorage.setItem("gameLog", JSON.stringify(messages));
-}
-
-function loadLog() {
-  const logDiv = document.getElementById("log");
-  const cachedMessages = localStorage.getItem("gameLog");
-  if (cachedMessages) {
-    try {
-      const messages = JSON.parse(cachedMessages);
-      logDiv.innerHTML = "";
-      messages.forEach((msgHTML) => {
-        const temp = document.createElement("div");
-        temp.innerHTML = msgHTML;
-        if (temp.firstElementChild) {
-          logDiv.appendChild(temp.firstElementChild);
-        }
-      });
-    } catch (e) {
-      console.error("Error parsing cached game log:", e);
-    }
-  }
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
 }
 
 // ================== FISHING FUNCTIONS ==================
 function fishCommand(baitInput) {
   if (playerData.trap.active) {
-    logMessage('You cannot fish while your trap is set. Please harvest or cancel your trap first.');
+    addGameMessage('You cannot fish while your trap is set. Please harvest or cancel your trap first.');
     return;
   }
 
   const now = Date.now();
   if (playerData.readyTimestamp && now < playerData.readyTimestamp) {
     const remainingTime = playerData.readyTimestamp - now;
-    logMessage(`Not so fast! You can fish again in ${formatTimeDelta(remainingTime)}.`);
+    addGameMessage(`Not so fast! You can fish again in ${formatTimeDelta(remainingTime)}.`);
     return;
   }
 
@@ -166,7 +137,7 @@ function fishCommand(baitInput) {
         b.name.toLowerCase() === baitInput.toLowerCase() ||
         b.emoji === baitInput
     );
-    if (playerData.coins < baitData.price) {logMessage(`You need ${baitData.price} coins for a ${baitInput} (you have ${playerData.coins}).`);
+    if (playerData.coins < baitData.price) {addGameMessage(`You need ${baitData.price} coins for a ${baitInput} (you have ${playerData.coins}).`);
       return;
     }
     rollMaximum = baitData.roll;
@@ -195,7 +166,8 @@ function fishCommand(baitInput) {
     }
     saveState();
     updateUI();
-    logMessage(`${message} (${formatTimeDelta(fishingDelay)} cooldown${appendix})<br>${playerData.catch.dryStreak} casts since last fish caught`);
+    showCollection();
+    addGameMessage(`${message} (${formatTimeDelta(fishingDelay)} cooldown${appendix})<br>${playerData.catch.dryStreak} casts since last fish caught`);
     return;
   }
 
@@ -219,7 +191,8 @@ function fishCommand(baitInput) {
   }
   saveState();
   updateUI();
-  logMessage(
+  showCollection();
+  addGameMessage(
     `Success! You caught a ${fishType}. ${sizeString} (30 min cooldown${appendix})`
   );
 }
@@ -272,24 +245,24 @@ function updateTrapUI() {
 }
 
 function trapCommand() {
-  if (playerData.coins < 20) {
-    logMessage("You need 20 coins to set a trap.");
-    return;
-  }
+  //if (playerData.coins < 20) {
+  //  addGameMessage("You need 20 coins to set a trap.");
+  //  return;
+  //}
 
-  playerData.coins -= 20;
+  //playerData.coins -= 20;
 
   const now = Date.now();
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 3600000; // 1 hour
+    playerData.trap.duration = 0; // 1 hour
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();
-    logMessage(`You have set your trap. It will be ready in ${formatTimeDelta(playerData.trap.duration)}.`);
+    addGameMessage(`You have set your trap. It will be ready in ${formatTimeDelta(playerData.trap.duration)}.`);
   } else {
-    logMessage("Your trap is active. Use the Harvest or Pull in Traps options.");
+    addGameMessage("Your trap is active. Use the Harvest or Pull in Traps options.");
   }
   updateTrapUI();
 }
@@ -329,15 +302,15 @@ function harvestTrap() {
       
       saveState();
       updateUI();
-
-      logMessage(harvestMsg);
+      showCollection();
+      addGameMessage(harvestMsg);
     } else {
       const remaining = playerData.trap.end - now;
       const msg = `Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`;
-      logMessage(msg);
+      addGameMessage(msg);
     }
   } else {
-    logMessage("No trap is set.");
+    addGameMessage("No trap is set.");
   }
   updateTrapUI();
 }
@@ -351,10 +324,11 @@ function pullInTraps() {
     playerData.coins += 20;
     saveState();
     updateUI();
-    logMessage("You pulled in your traps early, you have received no catch and your coins have been refunded.");
+    showCollection();
+    addGameMessage("You pulled in your traps early, you have received no catch and your coins have been refunded.");
     
   } else {
-    logMessage("No trap is set.");
+    addGameMessage("No trap is set.");
   }
   updateTrapUI();
 }
@@ -366,21 +340,25 @@ function calculateScore() {
 
 async function submitAutoScore(silent = false) {
   if (!playerData.name) {
-    if (!silent) logMessage("Username missing. Please enter a username at the prompt.");
+    if (!silent) addGameMessage("Username missing. Please enter a username at the prompt.");
     return;
   }
   const score = calculateScore();
-  if (!silent) logMessage("Submitting score for " + playerData.name + ": " + score);
+  if (!silent) addGameMessage("Submitting score for " + playerData.name + ": " + score);
 
   const { data, error } = await supabaseClient
     .from("leaderboard")
-    .upsert({ name: playerData.name, score, player_data: playerData, submission_origin: "submit-my-score" }, { onConflict: 'name' });
+    .upsert({
+      name: playerData.name,
+      score: score,
+      player_data: playerData, // stores the complete playerData object
+      submission_origin: "submit-my-score"
+    }, { onConflict: 'name' });
+    
   if (error) {
-    if (!silent)
-      logMessage("Error updating score: " + error.message);
+    if (!silent) addGameMessage("Error updating score: " + error.message);
   } else {
-    if (!silent)
-      logMessage("Score updated successfully!");
+    if (!silent) addGameMessage("Score updated successfully!");
   }
 }
 
@@ -389,28 +367,31 @@ async function loadLeaderboard() {
     .from("leaderboard")
     .select("name, score")
     .order("score", { ascending: false })
-    .order("name", { ascending: true })
-    
+    .order("name", { ascending: true });
+
   if (error) {
-    logMessage("Error loading leaderboard: " + error.message);
+    addGameMessage("Error loading leaderboard: " + error.message);
     return;
   }
-  
-  let html = `<h2>Global Leaderboard</h2>`;
-  data.forEach((entry, index) => {
-    html += `<div>${index + 1}. ${entry.name} - ${entry.score}</div>`;
-  });
-  
+
   const lbDisplay = document.getElementById("leaderboard-display");
-  if (lbDisplay) {
-    lbDisplay.innerHTML = html;
-  }
+  lbDisplay.innerHTML = ''; // Clear existing entries
+
+  data.forEach((entry, index) => {
+    const entryEl = document.createElement('div');
+    entryEl.innerHTML = `
+      ${index + 1}. ${entry.name} - <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
+    `;
+    lbDisplay.appendChild(entryEl);
+  });
 }
 
 // ================== COLLECTION POPUP & SELL FUNCTIONS ==================
 function showUsernamePopup() {
   const popup = document.getElementById("username-popup");
+  const overlay = document.getElementById("modal-overlay");
   popup.style.display = "block";
+  overlay.style.display = "block";
 }
 
 async function validateUsername(username) {
@@ -447,168 +428,190 @@ function setupUsernamePopup() {
     playerData.name = username;
     saveState();
     document.getElementById("username-popup").style.setProperty("display", "none", "important");
+    document.getElementById("modal-overlay").style.display = "none";
   });
 }
 
+// ================== COLLECTION DISPLAY ==================
+function createCollectionItem(emoji, count) {
+  const itemDiv = document.createElement("div");
+  itemDiv.className = "collection-item";
+  itemDiv.dataset.itemId = emoji;
+  
+  itemDiv.innerHTML = `
+    <div class="item-image">${emoji}</div>
+    <div class="item-count">x${count}</div>
+    <div class="sell-controls">
+      <input type="number" min="1" max="${count}" value="1">
+      <button class="pixel-button max-button">MAX</button>
+    </div>
+  `;
 
+  // Add max button handler
+  const maxButton = itemDiv.querySelector('.max-button');
+  maxButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const input = itemDiv.querySelector('input');
+    input.value = input.max; // Set to maximum available
+  });
 
-function showCollectionPopup() {
-  const popup = document.getElementById('collection-popup');
+  // Add click handler to show sell controls
+  itemDiv.addEventListener('click', (e) => {
+    // Don't trigger if clicking sell controls
+    if (e.target.closest('.sell-controls')) return;
+    
+    // Toggle selected state and sell controls
+    const sellControls = itemDiv.querySelector('.sell-controls');
+    itemDiv.classList.toggle('selected');
+    sellControls.style.display = itemDiv.classList.contains('selected') ? 'block' : 'none';
+    
+    // Update sell button text based on selections
+    updateSellButtons();
+  });
+
+  return itemDiv;
+}
+
+function updateSellButtons() {
+  const sections = document.querySelectorAll('.collection-section');
+  
+  sections.forEach(section => {
+    const heading = section.querySelector('h3');
+    if (!heading) return;
+    
+    const type = heading.textContent;
+    const sellBtn = section.querySelector('.sell-all-button');
+    if (!sellBtn) return;
+    
+    const selectedItems = section.querySelectorAll('.collection-item.selected').length;
+    sellBtn.textContent = selectedItems > 0 ? `Sell Selected ${type}` : `Sell All ${type}`;
+  });
+}
+
+function sellAllOfType(type) {
+  const sections = document.querySelectorAll('.collection-section');
+  let section;
+  
+  for (const s of sections) {
+    const heading = s.querySelector('h3');
+    if (heading && heading.textContent.toLowerCase() === type) {
+      section = s;
+      break;
+    }
+  }
+  
+  if (!section) return;
+
+  const selectedItems = section.querySelectorAll('.collection-item.selected');
+  let totalCoins = 0;
+  let totalItems = 0;
+
+  // If there are selected items, only sell those
+  if (selectedItems.length > 0) {
+    selectedItems.forEach(item => {
+      const emoji = item.dataset.itemId;
+      const input = item.querySelector('input');
+      const sellAmount = parseInt(input.value);
+      const itemData = itemTypes.find(i => i.name === emoji);
+      const currentCount = playerData.catch.types[emoji];
+
+      if (sellAmount <= currentCount && sellAmount > 0) {
+        totalCoins += itemData.price * sellAmount;
+        totalItems += sellAmount;
+        playerData.catch.types[emoji] -= sellAmount;
+        
+        if (type === 'fish') {
+          playerData.catch.fish -= sellAmount;
+        } else {
+          playerData.catch.junk -= sellAmount;
+        }
+      }
+    });
+  } else {
+    // Sell all if nothing is selected
+    for (const [emoji, count] of Object.entries(playerData.catch.types)) {
+      const itemData = itemTypes.find(item => item.name === emoji);
+      if (itemData && itemData.type === type && count > 0) {
+        totalCoins += itemData.price * count;
+        totalItems += count;
+        playerData.catch.types[emoji] = 0;
+      }
+    }
+    
+    if (type === 'fish') {
+      playerData.catch.fish = 0;
+    } else {
+      playerData.catch.junk = 0;
+    }
+  }
+
+  playerData.coins += totalCoins;
+  playerData.lifetime.sold += totalItems;
+
+  saveState();
+  updateUI();
+  showCollection();
+  
+  const sellType = selectedItems.length > 0 ? 'selected' : 'all';
+  addGameMessage(`Sold ${sellType} ${type} (${totalItems} items) for ${totalCoins} coins.`);
+}
+
+function showCollection() {
   const grid = document.getElementById('collection-grid');
   grid.innerHTML = '';
 
-  const container = document.createElement("div");
-  container.className = "collection-container";
-
+  // Create Fish section
   const fishSection = document.createElement("div");
-  fishSection.className = "collection-section fish-section";
-  fishSection.innerHTML = '<h3>Fish Collection</h3>';
+  fishSection.className = "collection-section";
+  fishSection.innerHTML = '<h3>Fish</h3>';
+  const fishContainer = document.createElement("div");
 
+  // Create Junk section
   const junkSection = document.createElement("div");
-  junkSection.className = "collection-section junk-section";
-  junkSection.innerHTML = '<h3>Junk Collection</h3>';
+  junkSection.className = "collection-section";
+  junkSection.innerHTML = '<h3>Junk</h3>';
+  const junkContainer = document.createElement("div");
 
+  // Populate items
   for (const [emoji, count] of Object.entries(playerData.catch.types)) {
     if (count > 0) {
       const itemData = itemTypes.find(item => item.name === emoji);
       if (!itemData) continue;
 
-      const itemDiv = document.createElement("div");
-      itemDiv.className = "collection-item";
-      itemDiv.setAttribute("data-emoji", emoji);
-
-      itemDiv.innerHTML = `
-        <div class="item-image">${emoji}</div>
-        <div class="item-count">x${count}</div>
-        <div class="sell-input-container hidden">
-          <input type="number" min="1" max="${count}" value="1" class="sell-amount-input" />
-        </div>
-      `;
-
-      itemDiv.addEventListener("click", function(e) {
-        if (e.target.tagName.toLowerCase() === "input") return;
-        this.classList.toggle("selected");
-        const inputContainer = this.querySelector(".sell-input-container");
-        if (inputContainer) {
-          inputContainer.classList.toggle("hidden");
-        }
-      });
-      const inputField = itemDiv.querySelector(".sell-amount-input");
-      if (inputField) {
-        inputField.addEventListener("click", e => e.stopPropagation());
-      }
-
+      const itemDiv = createCollectionItem(emoji, count);
+      
       if (itemData.type === "fish") {
-        fishSection.appendChild(itemDiv);
-      } else if (itemData.type === "junk") {
-        junkSection.appendChild(itemDiv);
+        fishContainer.appendChild(itemDiv);
+      } else {
+        junkContainer.appendChild(itemDiv);
       }
     }
   }
 
-  const sellAllFishBtn = document.createElement("button");
-  sellAllFishBtn.className = "sell-all-btn";
-  sellAllFishBtn.textContent = "Sell All Fish";
-  sellAllFishBtn.addEventListener("click", () => sellAllForCategory("fish"));
-  fishSection.appendChild(sellAllFishBtn);
-
-  const sellAllJunkBtn = document.createElement("button");
-  sellAllJunkBtn.className = "sell-all-btn";
-  sellAllJunkBtn.textContent = "Sell All Junk";
-  sellAllJunkBtn.addEventListener("click", () => sellAllForCategory("junk"));
-  junkSection.appendChild(sellAllJunkBtn);
-
-  container.appendChild(fishSection);
-  container.appendChild(junkSection);
-  grid.appendChild(container);
-
-  let sellButton = document.getElementById("sell-selected-btn");
-  if (!sellButton) {
-    sellButton = document.createElement("button");
-    sellButton.id = "sell-selected-btn";
-    sellButton.className = "sell-selected-btn";
-    sellButton.textContent = "Sell Selected";
-    sellButton.addEventListener("click", sellSelectedItems);
-    document.querySelector("#collection-popup .popup-content").appendChild(sellButton);
-  }
-  popup.classList.remove("hidden");
-}
-
-
-function sellAllForCategory(category) {
-  const grid = document.getElementById("collection-grid");
-  const items = grid.querySelectorAll(".collection-item");
-  items.forEach(itemDiv => {
-    const emoji = itemDiv.getAttribute("data-emoji");
-    const itemData = itemTypes.find(item => item.name === emoji);
-    if (itemData && itemData.type === category) {
-      const count = playerData.catch.types[emoji] || 0;
-      if (count > 0) {
-        const inputField = itemDiv.querySelector(".sell-amount-input");
-        if (inputField) {
-          inputField.value = count;
-        }
-        itemDiv.classList.add("selected");
-      }
-    }
-  });
-  sellSelectedItems();
-}
-
-
-
-function sellSelectedItems() {
-  const grid = document.getElementById('collection-grid');
-  const selectedItems = grid.querySelectorAll('.collection-item.selected');
-  if (selectedItems.length === 0) {
-    logMessage('No items selected to sell.');
-    return;
+  // Add sell all buttons and append sections
+  if (fishContainer.children.length > 0) {
+    const sellAllFishBtn = document.createElement('button');
+    sellAllFishBtn.className = 'pixel-button sell-all-button';
+    sellAllFishBtn.textContent = 'Sell All Fish';
+    sellAllFishBtn.addEventListener('click', () => sellAllOfType('fish'));
+    
+    fishSection.appendChild(fishContainer);
+    fishSection.appendChild(sellAllFishBtn);
+    grid.appendChild(fishSection);
   }
 
-  let summaryItems = [];
-  let totalGained = 0;
+  if (junkContainer.children.length > 0) {
+    const sellAllJunkBtn = document.createElement('button');
+    sellAllJunkBtn.className = 'pixel-button sell-all-button';
+    sellAllJunkBtn.textContent = 'Sell All Junk';
+    sellAllJunkBtn.addEventListener('click', () => sellAllOfType('junk'));
+    
+    junkSection.appendChild(junkContainer);
+    junkSection.appendChild(sellAllJunkBtn);
+    grid.appendChild(junkSection);
+  }
 
-  selectedItems.forEach(itemDiv => {
-    const emoji = itemDiv.getAttribute('data-emoji');
-    let currentCount = playerData.catch.types[emoji];
-    if (!currentCount) return;
-
-    const itemData = itemTypes.find(it => it.name === emoji);
-    if (!itemData || !itemData.sellable) return;
-
-    let sellAmount = 1;
-    if (currentCount > 1) {
-      const inputField = itemDiv.querySelector('.sell-amount-input');
-      if (inputField) {
-        sellAmount = parseInt(inputField.value, 10) || 1;
-      }
-    }
-    sellAmount = Math.min(currentCount, sellAmount);
-    const coinsGained = sellAmount * itemData.price;
-    totalGained += coinsGained;
-
-    playerData.catch.types[emoji] -= sellAmount;
-    if (itemData.type === 'fish') {
-      playerData.catch.fish = (playerData.catch.fish || 0) - sellAmount;
-    } else if (itemData.type === 'junk') {
-      playerData.catch.junk = (playerData.catch.junk || 0) - sellAmount;
-    }
-    playerData.coins += coinsGained;
-    playerData.lifetime.coins += coinsGained;
-
-    summaryItems.push(`${sellAmount} ${emoji}`);
-  });
-
-  saveState();
-  updateUI();
-  const summaryText =
-    'Sold: ' +
-    summaryItems.join(', ') +
-    ' | Total Gained: ' +
-    totalGained +
-    ' coins';
-  logMessage(summaryText);
-  showCollectionPopup();
+  updateSellButtons();
 }
 
 // ================== EVENT LISTENERS & INITIALIZATION ==================
@@ -626,8 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   checkTrapExpiration();
   updateUI();
+  showCollection();
   updateTrapUI();
-  loadLog();
   loadLeaderboard();
 
   setInterval(() => {
@@ -641,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         fishCommand('');
       } catch (e) {
-        logMessage('Error: ' + e.message);
+        addGameMessage('Error: ' + e.message);
       }
     });
   }
@@ -651,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         fishCommand('worm');
       } catch (e) {
-        logMessage('Error: ' + e.message);
+        addGameMessage('Error: ' + e.message);
       }
     });
   }
@@ -661,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         fishCommand('fly');
       } catch (e) {
-        logMessage('Error: ' + e.message);
+        addGameMessage('Error: ' + e.message);
       }
     });
   }
@@ -671,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         fishCommand('cricket');
       } catch (e) {
-        logMessage('Error: ' + e.message);
+        addGameMessage('Error: ' + e.message);
       }
     });
   }
@@ -688,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const showCollectionBtn = document.getElementById('show-btn');
   if (showCollectionBtn) {
-    showCollectionBtn.addEventListener('click', showCollectionPopup);
+    showCollectionBtn.addEventListener('click', showCollection);
   }
 
   const closePopupBtn = document.getElementById('close-popup');
@@ -727,7 +730,7 @@ const itemTypes = [
   { name: "🥫", sellable: true, size: false, type: "junk", price: 8, weight: 25 },
   { name: "💀", sellable: true, size: false, type: "junk", price: 5, weight: 10 },
   { name: "🥾", sellable: true, size: false, type: "junk", price: 20, weight: 5 },
-  { name: "🌿", sellable: true, size: false, type: "junk", price: 2, weight: 200 },
+  { name: "🌿", sellable: true, size: false, type: "junk", price: 2, weight: 150 },
   { name: "🍂", sellable: true, size: false, type: "junk", price: 1, weight: 100 },
   { name: "🧦", sellable: true, size: false, type: "junk", price: 5, weight: 50 },
   { name: "👓", sellable: true, size: false, type: "junk", price: 10, weight: 10 },
@@ -737,6 +740,12 @@ const itemTypes = [
   { name: "🪸", sellable: true, size: false, type: "junk", price: 30, weight: 1 },
   { name: "🧴", sellable: true, size: false, type: "junk", price: 10, weight: 5 },
   { name: "🪠", sellable: true, size: false, type: "junk", price: 10, weight: 3 },
+  { name: "🪶", sellable: true, size: false, type: "junk", price: 10, weight: 3 },
+  { name: "🩴", sellable: true, size: false, type: "junk", price: 10, weight: 4 },
+  { name: "🎈", sellable: true, size: false, type: "junk", price: 6, weight: 3 },
+  { name: "🪵", sellable: true, size: false, type: "junk", price: 15, weight: 2 },
+  { name: "🥄", sellable: true, size: false, type: "junk", price: 10, weight: 3 },
+  
   // Fish items
   { name: "🦂", sellable: true, size: true, type: "fish", price: 50, weight: 1 },
   { name: "🦑", sellable: true, size: true, type: "fish", price: 50, weight: 1 },

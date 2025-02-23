@@ -1,63 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header>
-      <img src="https://cdn.7tv.app/emote/01FN57TJS8000EXJQ7MWJVS124/3x.png" alt="Fishing game logo">
-    </header>
-    <main>
-      <section id="stats-panel">
-        <h2>Your Stats</h2>
-        <div id="stats">
+<html>
+<head>
+    <title>Retro Fisher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div id="modal-overlay" class="modal-overlay"></div>
+    <div class="container">
+        <!-- Left Panel -->
+        <div class="panel collection-panel">
+            <h2>🎣 Collection</h2>
+            <div id="collection-grid" class="collection-grid">
+                <div class="collection-section">
+                    <h3>Fish</h3>
+                    <div class="items-container">
+                        <div class="collection-item" data-item-id="fish1">
+                            <div class="item-image">🐟</div>
+                            <div class="item-count">x5</div>
+                            <div class="sell-controls">
+                                <input type="number" min="1" max="5" value="1">
+                                <button class="pixel-button">Sell</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="pixel-button sell-all-button">Sell All Fish</button>
+                </div>
+            </div>
         </div>
-      </section>
-      <section id="actions">
-        <h2>Actions</h2>
-        <div class="action-group">
-          <button id="fish-no-bait-btn">Fish (No Bait)</button>
-          <button id="fish-worm-btn">Worm 🪱(2 coins)</button>
-          <button id="fish-fly-btn">Fly 🪰(5 coins)</button>
-          <button id="fish-cricket-btn">Cricket 🦗(8 coins)</button>
+
+        <!-- Center Panel -->
+        <div class="main-content">
+            <div class="stats" id="stats"></div>
+            
+            <div class="fishing-controls">
+                <button id="fish-no-bait-btn" class="pixel-button">🎣 Free Cast</button>
+                <div class="bait-buttons">
+                    <button id="fish-worm-btn" class="pixel-button bait-button" style="background: #8B4513">🪱 Worm (¢2)</button>
+                    <button id="fish-fly-btn" class="pixel-button bait-button" style="background: #808000">🪰 Fly (¢5)</button>
+                    <button id="fish-cricket-btn" class="pixel-button bait-button" style="background: #556B2F">🦗 Cricket (¢8)</button>
+                </div>
+            </div>
+
+            <div class="trap-controls">
+                <button id="trap-btn" class="pixel-button trap-button">Set Trap</button>
+                <button id="pull-traps-btn" class="pixel-button trap-button">Pull Traps</button>
+            </div>
+
+            <div class="game-log" id="log">
+                <div class="cmd-prompt">READY</div>
+            </div>
         </div>
-        <div class="action-group">
-          <button id="trap-btn">Set Trap</button>
-          <button id="pull-traps-btn" style="display: none;">Pull in Trap</button>
+
+        <!-- Right Panel -->
+        <div class="panel leaderboard-panel">
+            <h2>🏆 Leaderboard</h2>
+            <div id="leaderboard-display" class="leaderboard"></div>
         </div>
-        <div class="action-group">
-          <button id="show-btn">Show Collection</button>
-        </div>
-      </section>
-      <section id="log-section">
-        <h2>Game Log</h2>
-        <div id="log"></div>
-      </section>
-      <div id="leaderboard-display" style="padding: 10px; background: #222; color: #fff; margin: 10px 0; border-radius: 8px;"></div>
-      <div class="action-group">
-      </div>
-    </main>
-    <div id="collection-popup" class="popup hidden">
-      <div class="popup-content">
-        <span id="close-popup" class="close">&times;</span>
-        <h2>Your Collection</h2>
-        <div id="collection-grid"></div>
-      </div>
     </div>
-    <div id="username-popup">
-      <div class="popup-content">
-        <h2>Enter Your Username</h2>
-        <input type="text" id="username-input" placeholder="Enter a unique username" />
-        <p id="username-error" class="error" style="display:none;"></p>
-        <button id="username-submit-btn">Submit</button>
-      </div>
+    <div id="username-popup" class="popup">
+        <div class="popup-content">
+            <h2>Enter Your Username</h2>
+            <input type="text" id="username-input" placeholder="Input a unique username" maxlength="20">
+            <button id="username-submit-btn" class="pixel-button">Start Fishing!</button>
+            <div id="username-error" class="error-message"></div>
+        </div>
     </div>
     <script src="main.js"></script>
-  </body>
+</body>
 </html>

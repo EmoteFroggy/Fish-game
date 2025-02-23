@@ -1,346 +1,522 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+:root {
+  --bg-color: #1a1a1a;
+  --text-color: #00ff00;
+  --pixel-border: 4px solid #333;
+  --scanline: rgba(0, 0, 0, 0.3);
 }
 
 body {
-  background: #121212;
-  color: #e0e0e0;
-  font-family: 'Segoe UI', sans-serif;
-  padding: 1px;
   margin: 0;
-  overflow-x: hidden;
-}
-
-header, main, .action-group, #log {
-  border-radius: 8px;
-}
-
-header {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  padding: 20px;
-}
-
-main {
-  width: 90%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 10px;
-}
-
-#stats-panel,
-#actions,
-#log-section {
-  background: #505050;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-#stats-panel h2,
-#actions h2,
-#log-section h2 {
-  margin-bottom: 0.5rem;
-  text-align: center;
-}
-
-#stats {
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.action-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: #023047;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.2s;
-}
-
-button:hover {
-  background: #0353a4;
-}
-
-input[type="text"],
-input[type="number"] {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-#log {
-  max-height: 300px;  /* Always show the scrollbar */
-  width: 100%;
-  box-sizing: border-box;
-  font-family: monospace;
-}
-
-
-#bait-buttons {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.message {
-  background: #323232;
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  animation: fadeIn 0.4s ease;
-  margin: 6px 0;
-}
-
-.message .timestamp {
-  font-size: 0.75rem;
-  color: #bbb;
-  margin-bottom: 0.25rem;
-}
-
-.message .text {
-  font-size: 1rem;
-  color: #e0e0e0;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.8);
-  width: 100vw;
+  background: #000 !important;
+  color: var(--text-color);
+  font-family: 'Press Start 2P', cursive;
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  transition: opacity 0.3s ease;
+  overflow: hidden;
 }
 
-.popup.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.popup-content {
-  background: #1f1f1f;
-  padding: 1.5rem;
-  border-radius: 10px;
-  max-width: 90%;
-  max-height: 80%;
-  overflow-y: auto;
+.container {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+  padding: 20px;
+  height: calc(100vh - 40px);
   position: relative;
+  z-index: 1;
 }
 
-.close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  cursor: pointer;
-  font-size: 1.5rem;
+.panel {
+  border: var(--pixel-border);
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  overflow-y: auto;
 }
 
-#collection-grid {
+.collection-panel {
+  width: 400px;
+  height: 865px;
+  margin: 0 auto;
+  padding: 20px !important;
+  border: var(--pixel-border) !important;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+}
+
+/* Collection Grid */
+.collection-grid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Collection Section */
+.collection-section {
+  width: 160px;
+  border: none !important;
+  padding: 10px 8px;
+}
+
+.collection-section h3 {
+  text-align: center;
+  margin: 0 0 10px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #334433;
+}
+
+/* Collection Items Container */
+.collection-section > div {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(9, 65px);
+  grid-auto-columns: 65px;
+  gap: 10px;
   justify-content: center;
 }
 
+/* Collection Items */
 .collection-item {
-  background: #2b2b2b;
-  border-radius: 8px;
-  padding: 0.5rem;
-  width: 60px;
-  height: 80px;
+  width: 65px;
+  height: 65px;
+  border: 2px solid #334433;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
   position: relative;
+  overflow: visible;
+  z-index: auto;
 }
 
-.collection-item.selected {
-  box-shadow: 0 0 0 3px #ffaa00;
+/* Add some retro hover effects */
+.collection-item:hover {
+  transform: scale(1.05);
+  background: rgba(0, 255, 0, 0.1);
+  border-color: var(--text-color);
 }
 
-.sell-input-container {
-  margin-top: 0.5rem;
-  width: 100%;
-  text-align: center;
+/* Enhance scrollbar for overflow */
+.collection-section > div::-webkit-scrollbar {
+  height: 8px;
+}
+
+.collection-section > div::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.collection-section > div::-webkit-scrollbar-thumb {
+  background: var(--text-color);
+  border: 2px solid #000;
+}
+
+/* Update existing item styling */
+.item-image {
+  font-size: 1.5em;
+  margin-bottom: 5px;
+}
+
+.item-count {
+  font-size: 0.8em;
+  color: var(--text-color);
+}
+
+/* Buttons */
+.pixel-button {
+  background: #444;
+  color: #fff;
+  border: 3px solid;
+  border-color: #666 #222 #222 #666;
+  padding: 10px 20px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  position: relative;
+  box-shadow: 
+      0 4px 0 #222,
+      0 5px 0 #000;
+}
+
+.pixel-button:hover {
+  transform: translateY(2px);
+  box-shadow: 
+      0 2px 0 #222,
+      0 3px 0 #000;
+  filter: brightness(1.2);
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.pixel-button:active {
+  transform: translateY(4px);
+  box-shadow: 
+      0 1px 0 #222,
+      0 2px 0 #000;
+}
+
+.bait-button {
+  font-size: 0.8rem;
+  padding: 8px 12px;
+}
+
+.trap-button {
+  background: #4a752c;
+}
+
+/* Game Log */
+.game-log {
+  height: 350px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  position: relative;
+  padding: 10px;
+  box-sizing: border-box;
+  border: var(--pixel-border);
+  background: rgba(0, 0, 0, 0.7);
+  margin: 10px 0;
+}
+
+.message {
+  margin: 5px 0;
+  padding: 5px 0;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.5);
   display: block;
 }
 
-.sell-input-container.hidden {
+.message::before {
+  content: ">";
+  color: var(--text-color);
+  font-family: 'Press Start 2P';
+  margin-right: 8px;
+}
+
+.timestamp {
+  margin-left: 1.2em;
+  color: #666;
+  font-size: 0.8em;
+}
+
+.text {
+  display: block;
+  margin-top: 3px;
+}
+
+.message:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Add these new styles */
+.message .timestamp {
+  color: var(--text-color); /* Keep timestamp green */
+}
+
+.message .text {
+  color: #ffffff; /* Make message text white */
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: var(--pixel-border);
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.stats div {
+  display: block;
+  font-size: 0.8em;
+  margin-bottom: 8px;
+}
+
+.stats div span:first-child {
+  color: var(--text-color); /* Green label */
+}
+
+.stats div span:last-child {
+  color: #ffffff !important;
+  margin-left: 5px;
+}
+
+/* Stats Display */
+#stats span + span {
+  color: #ffffff !important;
+}
+
+/* Leaderboard */
+.leaderboard {
+  flex: 1;
+  overflow-y: auto !important;
+  margin-top: 10px;
+  padding-right: 5px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.leaderboard div {
+  padding: 4px 0;
+  border-bottom: 1px solid #333;
+}
+
+.leaderboard-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  padding-bottom: 20px;
+}
+
+/* Scrollbar override */
+.leaderboard::-webkit-scrollbar {
+  display: block !important;
+  width: 8px;
+}
+
+/* Add placeholder styling */
+#collection-grid:empty::before,
+#leaderboard-display:empty::before,
+#stats:empty::before {
+  content: "Nothing to display...";
+  color: #666;
+  font-style: italic;
+}
+
+/* Username Popup */
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  border: var(--pixel-border);
+  padding: 20px;
+  z-index: 1000;
   display: none;
 }
 
-.sell-amount-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding-right: 2rem; /* Provide extra space for the arrow */
-  -moz-appearance: textfield;
+.popup-content {
+  text-align: center;
 }
 
-.sell-amount-input::-webkit-outer-spin-button,
-.sell-amount-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+#username-input {
+  background: #000;
+  color: var(--text-color);
+  border: 3px solid #333;
+  padding: 10px;
+  margin: 10px 0;
+  font-family: 'Press Start 2P';
+  width: 250px;
+}
+
+.error-message {
+  color: #ff4444;
+  margin-top: 10px;
+  display: none;
+}
+
+/* Fish Buttons */
+.fishing-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.bait-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+#fish-no-bait-btn {
+  margin-bottom: 15px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+}
+
+.trap-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Sell controls */
+.sell-controls {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--text-color);
+  padding: 5px;
+  z-index: 20;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  width: auto;
+  min-width: 60px;
+  max-width: 80px;
+  box-shadow: 0 0 10px rgba(0,255,0,0.2);
+}
+
+.sell-controls input {
+  width: 50px;
+  font-size: 0.6em;
+  padding: 2px;
+  margin-bottom: 2px;
+}
+
+.sell-controls button {
+  width: 100%;
+  font-size: 0.6em;
+  padding: 2px 5px;
+}
+
+.max-button {
+  font-size: 0.6em;
+  padding: 2px 5px;
+  background: #228B22;
+}
+
+.collection-item.selected {
+  border-color: var(--text-color);
+  background: rgba(0, 255, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.sell-all-button {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 0.8em;
+  background: #8B0000;
+}
+
+/* Add this to prevent overflow issues */
+.items-container {
+  position: relative;
+  overflow: visible;
+  padding: 0 4px;
+}
+
+/* Remove all scrollbars globally */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body, .panel, .game-log, .collection-section > div {
+  overflow: hidden !important;
+}
+
+/* CRT Scanlines */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background: 
+      repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.15) 0px,
+          rgba(255, 255, 255, 0.15) 2px,
+          transparent 2px,
+          transparent 5px
+      );
+  mix-blend-mode: screen;
+  opacity: 0.4;
+}
+
+@keyframes crt-scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100vh; }
+}
+
+/* Optional: Very subtle screen curvature */
+.crt-overlay::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+      ellipse at center,
+      rgba(0, 0, 0, 0) 60%,
+      rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+.game-message {
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
+  padding: 4px 0;
   margin: 0;
 }
 
-#collection-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
+/* Remove last border */
+.game-message:last-child {
+  border-bottom: none;
 }
 
-.collection-section {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border: 1px solid #444;
-  border-radius: 8px;
-  background: #222;
+/* Force white stats numbers */
+#stats > div > span + span {
+  color: #ffffff !important;
 }
 
-.collection-section h3 {
-  margin: 0 0 0.5rem;
-  color: #fff;
+/* Force white collection counts */
+.collection-item > .item-count {
+  color: #ffffff !important;
 }
 
-.collection-item {
-  display: inline-block;
-  margin: 0.5rem;
-  padding: 0.5rem;
-  text-align: center;
-  background: #333;
-  border-radius: 8px;
-  width: 60px;
-  height: 60px;
-  color: #fff;
-  cursor: pointer;
+.leaderboard-score {
+  color: #ffffff !important;
+  font-weight: bold;
+  margin-left: 5px;
+  font-size: 0.7rem;
 }
 
-/* Full-screen overlay that centers its content */
-#username-popup {
-position: fixed !important;
-top: 0 !important;
-left: 0 !important;
-width: 100vw !important;
-height: 100vh !important;
-background: rgba(0, 0, 0, 0.7) !important;
-display: flex !important;
-justify-content: center !important;
-align-items: center !important;
-z-index: 10000 !important;
-}
-
-#username-popup .popup-content {
-background: #333 !important;
-width: 300px !important;
-padding: 20px !important;
-border-radius: 10px !important;
-text-align: center;
-box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
-}
-
-/* Heading styling */
-#username-popup .popup-content h2 {
-margin-bottom: 1rem;
-font-size: 1.5rem;
-color: #fff;
-}
-
-/* Input styling */
-#username-popup .popup-content input {
-width: 100%;
-padding: 0.5rem;
-margin-bottom: 1rem;
-border: 1px solid #555;
-border-radius: 8px;
-font-size: 1rem;
-background: #444;
-color: #fff;
-}
-
-/* Button styling */
-#username-popup .popup-content button {
-width: 100%;
-padding: 0.5rem;
-background: #555;
-color: #fff;
-border: none;
-border-radius: 8px;
-cursor: pointer;
-font-size: 1rem;
-}
-
-.hidden {
-display: none !important;
-}
-
-#leaderboard-display {
+/* Add after .popup styles */
+.modal-overlay {
   position: fixed;
-  top: 116px;
-  left: calc((100vw - 800px) / 2 - 270px);
-  width: 250px;
-  height: auto;
-  background-color: #222;
-  color: #fff;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  border: 2px solid #444;
-  border-radius: 8px;
-  z-index: 500;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  display: none;
 }
 
-@media screen and (max-width: 1024px) {
-  #leaderboard-display {
-    left: calc((100vw - 800px) / 2 - 250px);
-    width: 220px;
-    padding: 15px;
-  }
+/* Update the ready message in HTML to match */
+.cmd-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-color);
 }
 
-@media screen and (max-width: 768px) {
-  #leaderboard-display {
-    position: relative;
-    top: auto;
-    left: auto;
-    width: 100%;
-    height: auto;
-    margin-top: 20px;
-    border: 2px solid #444;
-    border-radius: 8px;
-    padding: 20px;
-  }
+.cmd-prompt::before {
+  content: ">";
 }
-

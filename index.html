@@ -4,14 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retro Fishing Game</title>
+    <!-- External Stylesheets -->
     <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
+    <!-- CRT Screen Effect Wrapper -->
     <div class="crt">
+        <!-- Terminal Container -->
         <div class="terminal">
+            <!-- Main Game Layout - 3 Column Grid -->
             <div class="game-container">
-                <!-- Left Column - Collection -->
+                
+                <!-- ======== Left Column - Collection ======== -->
                 <div class="game-column left-column">
                     <div class="game-section collection-section">
                         <div class="section-title">COLLECTION</div>
@@ -19,24 +25,39 @@
                     </div>
                 </div>
                 
-                <!-- Middle Column - Stats, Buttons, Game Log -->
+                <!-- ======== Middle Column - Stats, Buttons, Game Log ======== -->
                 <div class="game-column middle-column">
+                    <!-- Stats Display -->
                     <div class="game-section stats-section">
                         <div class="section-title">STATS</div>
                         <div id="stats" class="stats-box"></div>
                     </div>
                     
+                    <!-- Command Buttons -->
                     <div class="game-section command-section">
                         <div class="section-title">COMMANDS</div>
                         <div class="command-buttons">
+                            <!-- Fishing Button (Free) -->
                             <div class="button-row top-row">
-                                <button id="fish-no-bait-btn" class="pixel-button big-button"><span class="emoji">🎣</span> FISH (FREE)</button>
+                                <button id="fish-no-bait-btn" class="pixel-button big-button">
+                                    <span class="emoji">🎣</span> FISH (FREE)
+                                </button>
                             </div>
+                            
+                            <!-- Bait Fishing Buttons -->
                             <div class="button-row">
-                                <button id="fish-worm-btn" class="pixel-button"><span class="emoji">🪱</span> WORM (¢2)</button>
-                                <button id="fish-fly-btn" class="pixel-button"><span class="emoji">🪰</span> FLY (¢5)</button>
-                                <button id="fish-cricket-btn" class="pixel-button"><span class="emoji">🦗</span> CRICKET (¢8)</button>
+                                <button id="fish-worm-btn" class="pixel-button">
+                                    <span class="emoji">🪱</span> WORM (¢2)
+                                </button>
+                                <button id="fish-fly-btn" class="pixel-button">
+                                    <span class="emoji">🪰</span> FLY (¢5)
+                                </button>
+                                <button id="fish-cricket-btn" class="pixel-button">
+                                    <span class="emoji">🦗</span> CRICKET (¢8)
+                                </button>
                             </div>
+                            
+                            <!-- Trap Buttons -->
                             <div class="button-row">
                                 <button id="trap-btn" class="pixel-button">SET TRAP (¢20)</button>
                                 <button id="pull-traps-btn" class="pixel-button hidden">PULL IN TRAP</button>
@@ -44,24 +65,26 @@
                         </div>
                     </div>
                     
+                    <!-- Game Log Area -->
                     <div class="game-section log-section">
                         <div class="section-title">GAME LOG</div>
                         <div id="log" class="log-box"></div>
                     </div>
                 </div>
                 
-                <!-- Right Column - Leaderboard -->
+                <!-- ======== Right Column - Leaderboard ======== -->
                 <div class="game-column right-column">
                     <div class="game-section leaderboard-section">
                         <div class="section-title">LEADERBOARD</div>
                         <div id="leaderboard-display" class="leaderboard-box"></div>
                     </div>
                 </div>
+                
             </div>
         </div>
     </div>
     
-    <!-- Username Modal -->
+    <!-- ======== Username Modal ======== -->
     <div id="modal-overlay" class="modal-overlay"></div>
     <div id="username-popup" class="popup">
         <h2>Enter Your Username</h2>

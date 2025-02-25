@@ -1,8 +1,15 @@
-/* ==================== GLOBAL STYLES ==================== */
+/**
+ * Retro Fishing Game
+ * A terminal-styled fishing game with collection mechanics
+ * CSS Stylesheet
+ */
+
+/* ==================== FONTS & VARIABLES ==================== */
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
+  /* Colors */
   --terminal-bg: #000000;
   --terminal-text: #33ff33;
   --terminal-white: #ffffff;
@@ -14,9 +21,12 @@
   --section-bg: rgba(0, 0, 0, 0.7);
   --section-title: #33ff33;
   --scanline-color: rgba(0, 0, 0, 0.1);
+  
+  /* Measurements */
   --message-height: 40px;
 }
 
+/* ==================== GLOBAL STYLES ==================== */
 * {
   margin: 0;
   padding: 0;
@@ -35,7 +45,8 @@ body {
 /* ==================== CRT EFFECT ==================== */
 .crt {
   position: relative;
-  background: linear-gradient(rgba(18, 16, 16, 0.75) 50%, rgba(0, 0, 0, 0.75) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.1), rgba(0, 255, 0, 0.1), rgba(0, 0, 255, 0.1));
+  background: linear-gradient(rgba(18, 16, 16, 0.75) 50%, rgba(0, 0, 0, 0.75) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.1), rgba(0, 255, 0, 0.1), rgba(0, 0, 255, 0.1));
   background-size: 100% 2px, 3px 100%;
   height: 100vh;
   width: 100vw;
@@ -50,7 +61,8 @@ body {
   left: 0;
   bottom: 0;
   right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
   z-index: 2;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
@@ -125,7 +137,7 @@ body {
   overflow: auto;
 }
 
-/* New column-specific styles */
+/* Column-specific styles */
 .left-column {
   width: 25%;
   border-right: 2px solid var(--terminal-border);
@@ -141,6 +153,25 @@ body {
 .right-column {
   width: 25%;
   border-left: 2px solid var(--terminal-border);
+}
+
+.middle-column .stats-section {
+  flex: 0 0 auto;
+  margin-bottom: 10px;
+}
+
+.middle-column .command-section {
+  flex: 0 0 auto;
+  margin-bottom: 10px;
+}
+
+.middle-column .log-section {
+  flex: 0 0 auto !important;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  margin-bottom: 0;
+  margin-top: 5px;
 }
 
 /* ==================== GAME SECTIONS ==================== */
@@ -166,7 +197,7 @@ body {
   position: relative;
 }
 
-/* Minimize button styling */
+/* Window control buttons */
 .section-title > span.min-btn {
   position: absolute;
   top: 5px;
@@ -186,7 +217,6 @@ body {
   transition: background-color 0.1s;
 }
 
-/* Maximize button styling */
 .section-title > span.max-btn {
   position: absolute;
   top: 5px;
@@ -206,13 +236,11 @@ body {
   transition: background-color 0.1s;
 }
 
-/* Style for the maximize symbol within the button */
 .section-title > span.max-btn > span.max-symbol {
   transform: translateY(-2.5px);
   display: inline-block;
 }
 
-/* Decorative close button */
 .section-title > span.close-btn {
   position: absolute;
   top: 5px;
@@ -237,37 +265,17 @@ body {
   padding-left: 1px;
 }
 
-/* Only keep the close button hover in CSS */
+/* Button hover effects */
 .section-title > span.close-btn:hover {
   background-color: #ff6b6b;
 }
 
-/* Add hover effects for the buttons */
 .section-title > span.max-btn:hover {
   background-color: #cccccc;
 }
 
 .section-title > span.min-btn:hover {
   background-color: #cccccc;
-}
-
-.middle-column .stats-section {
-  flex: 0 0 auto;
-  margin-bottom: 10px;
-}
-
-.middle-column .command-section {
-  flex: 0 0 auto;
-  margin-bottom: 10px;
-}
-
-.middle-column .log-section {
-  flex: 0 0 auto !important;
-  display: flex;
-  flex-direction: column;
-  height: auto;
-  margin-bottom: 0;
-  margin-top: 5px;
 }
 
 /* ==================== LOG BOX ==================== */
@@ -282,7 +290,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .ready-message {
@@ -303,17 +311,21 @@ body {
 }
 
 .message {
-  margin-bottom: 0;
+  margin-bottom: 5px;
   padding-bottom: 2px;
   padding-top: 2px;
   border-bottom: none;
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
   position: relative;
   font-size: 1.5rem;
   transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.4s ease;
   transform: translateY(0);
-  min-height: var(--message-height, 40px);
+  min-height: auto;
+  height: auto;
   opacity: 1;
+  width: 100%;
 }
 
 .message.new-message {
@@ -322,18 +334,17 @@ body {
 }
 
 .message.move-up {
-  transform: translateY(calc(-1 * var(--message-height, 40px)));
+  transform: translateY(-100%);
 }
 
 .message.fade-out {
   opacity: 0;
-  transform: translateY(calc(-2 * var(--message-height, 40px)));
-  transition: transform 0.5s ease-out, opacity 0.4s ease-out;
+  transition: opacity 0.4s ease-out;
 }
 
 @keyframes message-slide-in {
   0% {
-    transform: translateY(var(--message-height, 40px));
+    transform: translateY(20px);
     opacity: 0;
     text-shadow: 0 0 0 rgba(51, 255, 51, 0);
   }
@@ -366,7 +377,7 @@ body {
 .typewriter-effect {
   display: inline-block;
   overflow: hidden;
-  white-space: nowrap;
+  white-space: normal;
   margin: 0;
   animation: typing 2.5s steps(40, end);
   width: 100%;
@@ -384,6 +395,15 @@ body {
 .timestamp {
   color: var(--terminal-text);
   font-size: 1rem;
+}
+
+/* Style for message text to ensure proper wrapping */
+.message .text {
+  display: block;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* ==================== COMMAND BUTTONS ==================== */
@@ -559,6 +579,12 @@ body {
   color: var(--terminal-white);
 }
 
+.item-size {
+  font-size: 0.8rem;
+  color: var(--terminal-text);
+  margin-bottom: 3px;
+}
+
 .sell-controls {
   display: none;
   margin-top: 5px;
@@ -597,6 +623,18 @@ body {
   width: 100%;
   margin-top: 10px;
   font-size: 1.5rem;
+}
+
+/* Button flash animation when clicked */
+@keyframes button-flash {
+  0% { background-color: #336699; }
+  50% { background-color: #88aadd; }
+  100% { background-color: #336699; }
+}
+
+.button-flash {
+  animation: button-flash 0.5s ease;
+  box-shadow: 0 0 20px rgba(100, 200, 255, 0.9) !important;
 }
 
 /* ==================== LEADERBOARD SECTION ==================== */
@@ -677,6 +715,53 @@ body {
   display: none;
 }
 
+/* ==================== SCROLLBARS ==================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 30, 0, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--terminal-border);
+  border: 1px solid var(--terminal-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #55ff55;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+/* Ensuring the pull traps button displays correctly when active */
+#pull-traps-btn:not(.hidden) {
+  display: inline-block;
+  visibility: visible;
+}
+
+/* Adjust emoji position in buttons */
+.pixel-button:has(span.emoji) {
+  align-items: center;
+}
+
+#fish-worm-btn, #fish-fly-btn, #fish-cricket-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-left: 20px;
+}
+
+/* Ensure all emoji are aligned */
+.pixel-button .emoji {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+  margin-right: 4px;
+}
+
 /* ==================== RESPONSIVENESS ==================== */
 @media (max-width: 1200px) {
   .command-buttons {
@@ -737,50 +822,4 @@ body {
     width: 80%;
     margin: 5px 0;
   }
-}
-
-/* ==================== SCROLLBARS ==================== */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 30, 0, 0.4);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--terminal-border);
-  border: 1px solid var(--terminal-bg);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #55ff55;
-}
-
-/* Ensuring the pull traps button displays correctly when active */
-#pull-traps-btn:not(.hidden) {
-  display: inline-block;
-  visibility: visible;
-}
-
-/* Adjust emoji position in buttons */
-.pixel-button:has(span.emoji) {
-  align-items: center;
-}
-
-#fish-worm-btn, #fish-fly-btn, #fish-cricket-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  margin-left: 20px;
-}
-
-/* Ensure all emoji are aligned */
-.pixel-button .emoji {
-  display: inline-block;
-  vertical-align: middle;
-  line-height: 1;
-  margin-right: 4px;
 }

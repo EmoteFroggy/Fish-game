@@ -250,6 +250,8 @@ function trapCommand() {
     return;
   }
 
+
+  
   playerData.coins -= 20;
 
   const now = Date.now();

@@ -341,7 +341,7 @@ function trapCommand() {
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 0; // 1 hour
+    playerData.trap.duration = 3600000; // 1 hour
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();

@@ -1,72 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Fishing Game</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
-    <div class="crt-overlay"></div>
-    <div id="modal-overlay" class="modal-overlay"></div>
-    <div class="container">
-        <!-- Left Panel -->
-        <div class="panel collection-panel">
-            <h2>🎣 Collection</h2>
-            <div id="collection-grid" class="collection-grid">
-                <div class="collection-section">
-                    <h3>Fish</h3>
-                    <div class="items-container">
-                        <div class="collection-item" data-item-id="fish1">
-                            <div class="item-image">🐟</div>
-                            <div class="item-count">x5</div>
-                            <div class="sell-controls">
-                                <input type="number" min="1" max="5" value="1">
-                                <button class="pixel-button">Sell</button>
+    <div class="crt">
+        <div class="terminal">
+            <div class="game-container">
+                <!-- Left Column - Collection -->
+                <div class="game-column left-column">
+                    <div class="game-section collection-section">
+                        <div class="section-title">COLLECTION</div>
+                        <div id="collection-grid" class="collection-box"></div>
+                    </div>
+                </div>
+                
+                <!-- Middle Column - Stats, Buttons, Game Log -->
+                <div class="game-column middle-column">
+                    <div class="game-section stats-section">
+                        <div class="section-title">STATS</div>
+                        <div id="stats" class="stats-box"></div>
+                    </div>
+                    
+                    <div class="game-section command-section">
+                        <div class="section-title">COMMANDS</div>
+                        <div class="command-buttons">
+                            <div class="button-row top-row">
+                                <button id="fish-no-bait-btn" class="pixel-button big-button"><span class="emoji">🎣</span> FISH (FREE)</button>
+                            </div>
+                            <div class="button-row">
+                                <button id="fish-worm-btn" class="pixel-button"><span class="emoji">🪱</span> WORM (¢2)</button>
+                                <button id="fish-fly-btn" class="pixel-button"><span class="emoji">🪰</span> FLY (¢5)</button>
+                                <button id="fish-cricket-btn" class="pixel-button"><span class="emoji">🦗</span> CRICKET (¢8)</button>
+                            </div>
+                            <div class="button-row">
+                                <button id="trap-btn" class="pixel-button">SET TRAP (¢20)</button>
+                                <button id="pull-traps-btn" class="pixel-button hidden">PULL IN TRAP</button>
                             </div>
                         </div>
                     </div>
-                    <button class="pixel-button sell-all-button">Sell All Fish</button>
+                    
+                    <div class="game-section log-section">
+                        <div class="section-title">GAME LOG</div>
+                        <div id="log" class="log-box"></div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Leaderboard -->
+                <div class="game-column right-column">
+                    <div class="game-section leaderboard-section">
+                        <div class="section-title">LEADERBOARD</div>
+                        <div id="leaderboard-display" class="leaderboard-box"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Center Panel -->
-        <div class="main-content">
-            <div class="stats" id="stats"></div>
-            
-            <div class="fishing-controls">
-                <button id="fish-no-bait-btn" class="pixel-button">🎣 Free Cast</button>
-                <div class="bait-buttons">
-                    <button id="fish-worm-btn" class="pixel-button bait-button" style="background: #8B4513">🪱 Worm (¢2)</button>
-                    <button id="fish-fly-btn" class="pixel-button bait-button" style="background: #808000">🪰 Fly (¢5)</button>
-                    <button id="fish-cricket-btn" class="pixel-button bait-button" style="background: #556B2F">🦗 Cricket (¢8)</button>
-                </div>
-            </div>
-
-            <div class="trap-controls">
-                <button id="trap-btn" class="pixel-button trap-button">Set Trap</button>
-                <button id="pull-traps-btn" class="pixel-button trap-button">Pull Traps</button>
-            </div>
-
-            <div class="game-log" id="log">
-                <div class="cmd-prompt">READY</div>
-            </div>
-        </div>
-
-        <!-- Right Panel -->
-        <div class="panel leaderboard-panel">
-            <h2>🏆 Leaderboard</h2>
-            <div id="leaderboard-display" class="leaderboard"></div>
         </div>
     </div>
+    
+    <!-- Username Modal -->
+    <div id="modal-overlay" class="modal-overlay"></div>
     <div id="username-popup" class="popup">
-        <div class="popup-content">
-            <h2>Enter Your Username</h2>
-            <input type="text" id="username-input" placeholder="Input a unique username" maxlength="20">
-            <button id="username-submit-btn" class="pixel-button">Start Fishing!</button>
-            <div id="username-error" class="error-message"></div>
-        </div>
+        <h2>Enter Your Username</h2>
+        <input type="text" id="username-input" placeholder="Username">
+        <p id="username-error" class="error"></p>
+        <button id="username-submit-btn" class="pixel-button">Submit</button>
     </div>
+    
     <script src="main.js"></script>
 </body>
 </html>

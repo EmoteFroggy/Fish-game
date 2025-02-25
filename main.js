@@ -101,18 +101,101 @@ function getTimestamp() {
   return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
 }
 
-function addGameMessage(message) {
+function removeReadyMessage() {
   const log = document.getElementById("log");
+  if (!log) return;
+  
+  // Look for any ready messages and remove them
+  const readyMessages = log.querySelectorAll('.ready-message');
+  readyMessages.forEach(el => {
+    const messageDiv = el.closest('.message');
+    if (messageDiv) {
+      messageDiv.remove();
+    }
+  });
+}
+
+function addGameMessage(message, isImportant = false, useTypewriter = false) {
+  const log = document.getElementById("log");
+  if (!log) return;
+  
+  // Remove the READY message if it exists
+  removeReadyMessage();
+
+  // Get all existing messages first
+  let existingMessages = Array.from(log.querySelectorAll('.message'));
+  
+  // Create a new message element
   const entry = document.createElement("div");
   entry.className = "message";
+  if (isImportant) entry.classList.add("important");
+  
+  // Create the message content with or without typewriter effect
+  const textSpan = useTypewriter ? 
+    `<span class="text typewriter-effect">${message}</span>` : 
+    `<span class="text">${message}</span>`;
+  
   entry.innerHTML = `
     <span class="timestamp">[${getTimestamp()}]</span>
     <br>
-    <span class="text">${message}</span>
+    ${textSpan}
   `;
-  
+
+  // Add the new message but make it invisible for height calculation
+  entry.style.visibility = 'hidden';
+  entry.style.position = 'absolute';
   log.appendChild(entry);
-  log.scrollTop = log.scrollHeight;
+  
+  // Calculate its height
+  const newMessageHeight = entry.offsetHeight;
+  
+  // Set the new message height as a CSS variable on the :root
+  document.documentElement.style.setProperty('--message-height', `${newMessageHeight}px`);
+  
+  // Remove the positioning used for measurement
+  entry.style.visibility = '';
+  entry.style.position = '';
+  log.removeChild(entry);
+  
+  // Apply move-up class to existing messages
+  existingMessages.forEach(msg => {
+    msg.classList.add('move-up');
+  });
+  
+  // Wait for existing messages to start moving up
+  setTimeout(() => {
+    // Add the new message with animation
+    entry.classList.add('new-message');
+    log.appendChild(entry);
+    
+    // After animation completes, reset positions and remove oldest if needed
+    setTimeout(() => {
+      // Reset the position of all messages
+      existingMessages.forEach(msg => {
+        msg.classList.remove('move-up');
+        msg.style.transform = 'translateY(0)';
+      });
+      
+      // Remove oldest messages if we have more than 6
+      existingMessages = Array.from(log.querySelectorAll('.message'));
+      if (existingMessages.length > 6) {
+        // Apply fade-out animation to the messages to be removed
+        for (let i = 0; i < existingMessages.length - 6; i++) {
+          existingMessages[i].classList.add('fade-out');
+        }
+        
+        // Remove them after fade-out animation completes
+        setTimeout(() => {
+          while (existingMessages.length > 6) {
+            if (existingMessages[0] && existingMessages[0].parentNode) {
+              existingMessages[0].remove();
+            }
+            existingMessages.shift();
+          }
+        }, 400); // Match this to the fade-out duration
+      }
+    }, 500); // Match this to the animation duration
+  }, 50);
 }
 
 // ================== FISHING FUNCTIONS ==================
@@ -193,7 +276,9 @@ function fishCommand(baitInput) {
   updateUI();
   showCollection();
   addGameMessage(
-    `Success! You caught a ${fishType}. ${sizeString} (30 min cooldown${appendix})`
+    `Success! You caught a ${fishType}. ${sizeString} (30 min cooldown${appendix})`,
+    true, // Mark as important
+    false // No typewriter effect
   );
 }
 
@@ -232,14 +317,14 @@ function updateTrapUI() {
   const trapBtn = document.getElementById("trap-btn");
   const pullBtn = document.getElementById("pull-traps-btn");
   if (playerData.trap.active) {
-    trapBtn.textContent = "Harvest Trap";
+    trapBtn.textContent = "HARVEST TRAP";
     if (pullBtn) {
-      pullBtn.style.display = "inline-block";
+      pullBtn.classList.remove("hidden");
     }
   } else {
-    trapBtn.textContent = "Set Trap";
+    trapBtn.textContent = "SET TRAP (¢20)";
     if (pullBtn) {
-      pullBtn.style.display = "none";
+      pullBtn.classList.add("hidden");
     }
   }
 }
@@ -250,15 +335,13 @@ function trapCommand() {
     return;
   }
 
-
-  
   playerData.coins -= 20;
 
   const now = Date.now();
   if (!playerData.trap.active) {
     playerData.trap.active = true;
     playerData.trap.start = now;
-    playerData.trap.duration = 3600000; // 1 hour
+    playerData.trap.duration = 0; // 1 hour
     playerData.trap.end = now + playerData.trap.duration;
     saveState();
     updateUI();
@@ -305,7 +388,11 @@ function harvestTrap() {
       saveState();
       updateUI();
       showCollection();
-      addGameMessage(harvestMsg);
+      if (fishCount > 0) {
+        addGameMessage(harvestMsg, true, true);
+      } else {
+        addGameMessage(harvestMsg);
+      }
     } else {
       const remaining = playerData.trap.end - now;
       const msg = `Your trap is not yet ready to harvest. Time remaining: ${formatTimeDelta(remaining)}.`;
@@ -377,12 +464,15 @@ async function loadLeaderboard() {
   }
 
   const lbDisplay = document.getElementById("leaderboard-display");
+  if (!lbDisplay) return;
+  
   lbDisplay.innerHTML = ''; // Clear existing entries
 
   data.forEach((entry, index) => {
     const entryEl = document.createElement('div');
+    entryEl.className = 'leaderboard-entry';
     entryEl.innerHTML = `
-      ${index + 1}. ${entry.name} - <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
+      ${index + 1}. <span class="leaderboard-name">${entry.name}</span> - <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
     `;
     lbDisplay.appendChild(entryEl);
   });
@@ -392,8 +482,8 @@ async function loadLeaderboard() {
 function showUsernamePopup() {
   const popup = document.getElementById("username-popup");
   const overlay = document.getElementById("modal-overlay");
-  popup.style.display = "block";
-  overlay.style.display = "block";
+  if (popup) popup.style.display = "block";
+  if (overlay) overlay.style.display = "block";
 }
 
 async function validateUsername(username) {
@@ -411,9 +501,13 @@ async function validateUsername(username) {
 
 function setupUsernamePopup() {
   const submitBtn = document.getElementById("username-submit-btn");
+  if (!submitBtn) return;
+  
   submitBtn.addEventListener("click", async () => {
     const usernameInput = document.getElementById("username-input");
     const errorEl = document.getElementById("username-error");
+    if (!usernameInput || !errorEl) return;
+    
     const username = usernameInput.value.trim();
     if (!username) {
       errorEl.style.display = "block";
@@ -429,8 +523,11 @@ function setupUsernamePopup() {
     errorEl.style.display = "none";
     playerData.name = username;
     saveState();
-    document.getElementById("username-popup").style.setProperty("display", "none", "important");
-    document.getElementById("modal-overlay").style.display = "none";
+    
+    const usernamePopup = document.getElementById("username-popup");
+    const modalOverlay = document.getElementById("modal-overlay");
+    if (usernamePopup) usernamePopup.style.display = "none";
+    if (modalOverlay) modalOverlay.style.display = "none";
   });
 }
 
@@ -562,6 +659,21 @@ function showCollection() {
   const grid = document.getElementById('collection-grid');
   grid.innerHTML = '';
 
+  // Count total items
+  let totalItems = 0;
+  for (const count of Object.values(playerData.catch.types)) {
+    if (count > 0) totalItems += 1;
+  }
+
+  // If no items, show "Nothing to show..." message
+  if (totalItems === 0) {
+    const emptyMessage = document.createElement("div");
+    emptyMessage.className = "empty-collection-message";
+    emptyMessage.textContent = "Nothing to show...";
+    grid.appendChild(emptyMessage);
+    return;
+  }
+
   // Create Fish section
   const fishSection = document.createElement("div");
   fishSection.className = "collection-section";
@@ -621,24 +733,70 @@ function showCollection() {
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
 
-  if (playerData.name && playerData.name.trim().length > 0) {
-    document.getElementById("username-popup").style.setProperty("display", "none", "important");
+  if (playerData && playerData.name && playerData.name.trim().length > 0) {
+    const usernamePopup = document.getElementById("username-popup");
+    const modalOverlay = document.getElementById("modal-overlay");
+    if (usernamePopup) usernamePopup.style.display = "none";
+    if (modalOverlay) modalOverlay.style.display = "none";
   } else {
     showUsernamePopup();
     setupUsernamePopup();
   }
   
-
+  // Add window control buttons to all section titles
+  const sectionTitles = document.querySelectorAll('.section-title');
+  sectionTitles.forEach(title => {
+    // Add maximize button
+    const maxBtn = document.createElement('span');
+    maxBtn.className = 'max-btn';
+    
+    // Create an inner span for the maximize symbol
+    const maxSymbol = document.createElement('span');
+    maxSymbol.className = 'max-symbol';
+    maxSymbol.textContent = '🗖';
+    maxBtn.appendChild(maxSymbol);
+    
+    title.appendChild(maxBtn);
+    
+    // Add close button
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'close-btn';
+    closeBtn.textContent = '×';
+    title.appendChild(closeBtn);
+    
+    // Add minimize button
+    const minBtn = document.createElement('span');
+    minBtn.className = 'min-btn';
+    minBtn.textContent = '_';
+    title.appendChild(minBtn);
+  });
+  
   checkTrapExpiration();
   updateUI();
   showCollection();
   updateTrapUI();
   loadLeaderboard();
+  
+  // Add "READY" message to empty game log on page load
+  const log = document.getElementById("log");
+  if (log && log.children.length === 0) {
+    const readyMsg = document.createElement("div");
+    readyMsg.className = "message new-message";
+    readyMsg.innerHTML = '<span class="ready-message">> READY<span class="blinking-cursor">_</span></span>';
+    log.appendChild(readyMsg);
+  }
+  
+  // Set up click handlers for all buttons to remove ready message
+  const allButtons = document.querySelectorAll('.pixel-button');
+  allButtons.forEach(button => {
+    button.addEventListener('click', removeReadyMessage);
+  });
 
+  // Set up auto-refresh for leaderboard and score submission
   setInterval(() => {
     loadLeaderboard();
     submitAutoScore(true);
-  }, 5000);
+  }, 30000); // Update every 30 seconds
 
   const fishNoBaitBtn = document.getElementById('fish-no-bait-btn');
   if (fishNoBaitBtn) {
@@ -681,28 +839,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const submitScoreBtn = document.getElementById('submit-score-btn');
-  if (submitScoreBtn) {
-    submitScoreBtn.addEventListener('click', submitAutoScore);
-  }
-
-  const loadLeaderboardBtn = document.getElementById('load-leaderboard-btn');
-  if (loadLeaderboardBtn) {
-    loadLeaderboardBtn.addEventListener('click', loadLeaderboard);
-  }
-
-  const showCollectionBtn = document.getElementById('show-btn');
-  if (showCollectionBtn) {
-    showCollectionBtn.addEventListener('click', showCollection);
-  }
-
-  const closePopupBtn = document.getElementById('close-popup');
-  if (closePopupBtn) {
-    closePopupBtn.addEventListener('click', () => {
-      document.getElementById('collection-popup').classList.add('hidden');
-    });
-  }
-
   const trapBtn = document.getElementById("trap-btn");
   if (trapBtn) {
     trapBtn.addEventListener("click", () => {
@@ -714,6 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+
   const pullBtn = document.getElementById("pull-traps-btn");
   if (pullBtn) {
     pullBtn.addEventListener("click", pullInTraps);
